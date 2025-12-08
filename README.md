@@ -1,2 +1,2 @@
-# students
-Resources for students
+# Students
+Data Dunkers resources for students.
