@@ -31,15 +31,12 @@
     <b>stand out</b> from the rest (<a href="https://en.wikipedia.org/wiki/Outlier">outliers</a>).
   </p>
 
-  <p>Check out the <a
-      href="https://github.com/Data-Dunkers/student/blob/main/activities/interpreting-scatterplots.ipynb">notebook</a>
-    that generated this visualization in Colab or the Callysto Hub.</p>
-
   <footer>
     <h3>Questions</h3>
     <p class="questions" id="questions"></p>
     <p style="text-align: center;"><button onclick="copyAnswers()" style="padding:10px 20px; margin-top:10px;">Copy
         Answers</button></p>
+    <p id="gitpullParagraph"></p>
     <p style="text-align:center;"><a href="index.html">home</a> | <a href="shot-charts.html">next</a></p>
     <img src="https://github.com/Data-Dunkers/lessons/blob/main/images/bottom-banner.jpg?raw=true"
       alt="Data Dunkers Bottom Banner" style="width:50%; height:auto; display:block; margin:0 auto;">
@@ -52,6 +49,33 @@
       "If you were the coach, what questions would you ask about this player?"
     ];
 
+    const githubUrl = "https://github.com/Data-Dunkers/student/blob/main/activities/interpreting-scatterplots.ipynb";
+
+    // insert the gitpull links
+    try {
+      var colabUrl = "https://colab.research.google.com/github/" + githubUrl.split("github.com/")[1];
+      var res = githubUrl.split("/");
+      var site = res[2];
+      var user = res[3];
+      var repo = res[4];
+      var treeBlob = res[5];
+      var branch = res[6];
+      var callystoUrl = "https://hub.callysto.ca/jupyter/hub/user-redirect/git-pull?repo=";
+      if (site == "github.com") {
+        if (treeBlob) {
+          var subPath = githubUrl.substring(githubUrl.indexOf(branch) + branch.length + 1);
+          callystoUrl += encodeURIComponent("https://github.com/" + user + "/") + repo + "&branch=" + branch + "&subPath=" + subPath + "&depth=1";
+        } else {
+          callystoUrl += githubUrl;
+        }
+      }
+      var gitpullParagraph = `<p>Check out the <a href="${githubUrl}">notebook</a> that generated this visualization in <a href="${colabUrl}"> Colab</a> or the <a href="${callystoUrl}">Callysto Hub</a>.</p>`;
+      document.getElementById('gitpullParagraph').innerHTML = gitpullParagraph;
+    } catch (error) {
+      console.error('Error:', error);
+    }
+
+    // add the questions
     questions.forEach((question, index) => {
       const questionHTML = `<label for="question${index + 1}">${index + 1}. ${question}</label><br>
                           <input type="text" style="width:80%; padding:5px; margin:10px 0;" id="question${index + 1}"><br>`;
@@ -106,6 +130,29 @@
         alert('Failed to copy answers');
       });
     }
+
+    function gitpullLinks(githubUrl) {
+      var colabUrl = "https://colab.research.google.com/github/" + githubUrl.split("github.com/")[1];
+      var res = githubUrl.split("/");
+      var site = res[2];
+      var user = res[3];
+      var repo = res[4];
+      var treeBlob = res[5];
+      var branch = res[6];
+      var colabUrl = "https://colab.research.google.com/github/";
+      var callystoUrl = "https://hub.callysto.ca/jupyter/hub/user-redirect/git-pull?repo=";
+      if (site == "github.com") {
+        if (treeBlob) {
+          var subPath = githubUrl.substring(githubUrl.indexOf(branch) + branch.length + 1);
+          callystoUrl += encodeURIComponent("https://github.com/" + user + "/") + repo + "&branch=" + branch + "&subPath=" + subPath + "&depth=1";
+        } else {
+          callystoUrl += githubUrl;
+        }
+      }
+      var parag = `<p>Check out the <a href="${githubUrl}">notebook</a> that generated this visualization in <a href="${colabUrl}"> Colab</a> or the <a href="${callystoUrl}">Callysto Hub</a>.</p>`;
+      return parag;
+    }
+
   </script>
 </body>
 
