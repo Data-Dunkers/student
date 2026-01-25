@@ -1,0 +1,16 @@
+jupyter
+notebook
+jupyterlab
+
+numpy
+pandas
+
+matplotlib
+seaborn
+
+plotly
+
+requests
+beautifulsoup4
+
+lxml
