@@ -6,7 +6,7 @@ Repository for student-facing Jupyter notebook activities and supporting HTML ex
 - `activities/` — primary student notebooks grouped by topic (interpreting visuals, data skills, applied analysis) plus `HTML-Exports/` for rendered copies (ignored in git).
 - `notebooks/` — challenge and enrichment notebooks using current basketball datasets.
 - `docs/` — simple static index page that links to many lesson variants.
-- `requirements.txt` — minimal Python stack (Jupyter, pandas/numpy, matplotlib/seaborn/plotly, requests/bs4/lxml).
+- `requirements.txt` — minimal Python stack (Jupyter, pandas/numpy, plotly.express, requests/bs4/lxml).
 - `.venv/` (optional) — local virtual environment if you create one.
 
 ## Getting Started
@@ -17,7 +17,7 @@ Repository for student-facing Jupyter notebook activities and supporting HTML ex
 ## Tips for Using the Notebooks
 - Keep outputs and written reflections in-place; duplicate files if you want a fresh copy.
 - Run cells sequentially; most notebooks assume earlier setup cells have executed.
-- Visual notebooks (e.g., interpreting bar/line/pie/scatter/sunburst) focus on reading charts; data skill notebooks cover cleaning, sorting/merging, correlations, descriptive stats, and simple synthetic data; applied analysis includes shot charts.
+- Visual notebooks (using `plotly.express` exclusively) focus on reading charts; data skill notebooks cover cleaning, sorting/merging, correlations, descriptive stats, and simple synthetic data; applied analysis includes shot charts.
 - Challenge notebooks in `notebooks/` explore live or recent NBA data (player profiles, shot selection, partial-season trends, etc.) and may require network access for API calls.
 
 ## Updating or Publishing
