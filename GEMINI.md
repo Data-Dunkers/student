@@ -57,3 +57,31 @@ To ensure consistency across the student portal, all lesson pages in `docs/` mus
 ## Support
 
 - Issues typically stem from missing packages or blocked network calls for live-data notebooks. Re-run `pip install -r requirements.txt`, and if fetching data fails, retry on a different network or mock data locally.
+
+## Style Guide
+
+For the most up-to-date standards, please refer to the [Master Style Guide](https://docs.google.com/document/d/1oik8ZycHxHAwmqyespPV3a0997yFidHJrqPZTytj9zQ/edit?tab=t.0).
+
+### Jupyter Notebooks & Code
+
+- **Imports**: Library imports should be at the top of the first code cell.
+- **Outputs**: Every code cell should output something (even if specific print statements like `print('Libraries imported')`).
+- **Execution Flow**: Cells must run correctly from top to bottom.
+- **Comments**: Avoid comments in code cells unless absolutely necessary; use Markdown cells for explanations.
+- **Quotes**: Prefer single quotes (`'`) over double quotes (`"`) in Python code.
+- **Cell Size**: Prefer short code cells over long ones.
+- **Data Inspection**: Always use `df.head()` immediately after importing data (rather than just `df`).
+- **Variables**: We don’t always need a `fig` variable.
+- **Standard Variable Names**: Use `df = pd.read_csv(url)` for consistency.
+- **Space for Automation**: You may leave a blank cell at the top and bottom of a notebook for scripts to inject banners and links.
+
+### Visual Branding & Navigation
+
+- **Banners**: Include a banner at the top of each notebook and webpage.
+  - Image URL: `https://github.com/Data-Dunkers/lessons/blob/main/images/top-banner.jpg?raw=true`
+- **Online Access**: Include "Open in Colab" and "Open in Callysto" links at the bottom of each notebook (these can be automated).
+
+### Git & Naming Conventions
+
+- **Commit Messages**: Should be descriptive and in the imperative voice (e.g., "Fix library imports").
+- **File Names**: Use lowercase and kebab-case (e.g., `interpreting-scatterplots.ipynb`).
