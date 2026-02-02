@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GitPull Links Test</title>
+    <style>
+        body { font-family: sans-serif; margin: 2%; line-height: 1.6; }
+        .test-case { margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; }
+        .url { font-family: monospace; color: #666; }
+        .result { margin-top: 10px; background: #f9f9f9; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>GitPull Links Test</h1>
+    <p>This page tests the <code>gitpullLinks</code> function with different GitHub URL formats.</p>
+
+    <div id="test-results"></div>
+
+    <hr>
+    <h2>Methodology</h2>
+    <p>The <code>gitpullLinks</code> function transforms a standard GitHub notebook URL into interactive launch links using the following rules:</p>
+    
+    <h3>1. Google Colab</h3>
+    <p>Colab links are the simplest to generate. We take the portion of the GitHub URL after <code>github.com/</code> and prepend the Colab GitHub handler:</p>
+    <ul>
+        <li><strong>Formula:</strong> <code>https://colab.research.google.com/github/</code> + <code>{user}/{repo}/blob/{branch}/{path}</code></li>
+    </ul>
+
+    <h3>2. Callysto Hub</h3>
+    <p>Callysto uses a <code>git-pull</code> redirector. The transformation depends on whether the link points to a specific file (contains <code>/blob/</code>) or the root repo:</p>
+    <ul>
+        <li><strong>Base URL:</strong> <code>https://hub.callysto.ca/jupyter/hub/user-redirect/git-pull?repo=</code></li>
+        <li><strong>Subfolder/File Logic:</strong> If the URL contains a branch and path, we extract the <code>subPath</code> and <code>branch</code>, then encode the repository URL.</li>
+        <li><strong>Formula:</strong> <code>{BaseURL}</code> + <code>{EncodedRepo}</code> + <code>&branch={branch}</code> + <code>&subPath={path}</code> + <code>&depth=1</code></li>
+    </ul>
+
+    <h3>3. GitHub (Source)</h3>
+    <p>The original URL is provided as a direct link to the static notebook on GitHub for reference.</p>
+
+    <script>
+        function gitpullLinks(githubUrl) {
+            // Fix: handle the colabUrl correctly
+            var colabUrl = "https://colab.research.google.com/github/" + githubUrl.split("github.com/")[1];
+            var res = githubUrl.split("/");
+            var site = res[2];
+            var user = res[3];
+            var repo = res[4];
+            var treeBlob = res[5];
+            var branch = res[6];
+            var callystoUrl = "https://hub.callysto.ca/jupyter/hub/user-redirect/git-pull?repo=";
+            
+            if (site == "github.com") {
+                if (treeBlob) {
+                    var subPath = githubUrl.substring(githubUrl.indexOf(branch) + branch.length + 1);
+                    callystoUrl += encodeURIComponent("https://github.com/" + user + "/") + repo + "&branch=" + branch + "&subPath=" + subPath + "&depth=1";
+                } else {
+                    callystoUrl += githubUrl;
+                }
+            }
+            var parag = `<p>Check out the <a href="${githubUrl}">notebook</a> that generated this visualization in <a href="${colabUrl}"> Colab</a> or the <a href="${callystoUrl}">Callysto Hub</a>.</p>`;
+            return parag;
+        }
+
+        const testUrls = [
+            "https://github.com/Data-Dunkers/student/blob/main/activities/synthetic-data.ipynb",
+            "https://github.com/Data-Dunkers/student/blob/main/activities/mean-median-mode.ipynb",
+            "https://github.com/Data-Dunkers/student/blob/main/notebooks/player-profiles.ipynb",
+            "https://github.com/someuser/somerepo/blob/dev/subfolder/file.ipynb"
+        ];
+
+        const container = document.getElementById('test-results');
+        testUrls.forEach(url => {
+            const div = document.createElement('div');
+            div.className = 'test-case';
+            div.innerHTML = `
+                <div><strong>Input URL:</strong> <span class="url">${url}</span></div>
+                <div class="result">${gitpullLinks(url)}</div>
+            `;
+            container.appendChild(div);
+        });
+    </script>
+</body>
+</html>
