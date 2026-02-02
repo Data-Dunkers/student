@@ -53,8 +53,7 @@
     ];
     const githubUrl = "https://github.com/Data-Dunkers/student/blob/main/activities/mean-median-mode.ipynb";
 
-    // insert the gitpull links
-    try {
+    function gitpullLinks(githubUrl) {
       var colabUrl = "https://colab.research.google.com/github/" + githubUrl.split("github.com/")[1];
       var res = githubUrl.split("/");
       var site = res[2];
@@ -71,8 +70,13 @@
           callystoUrl += githubUrl;
         }
       }
-      var gitpullParagraph = `<p>Check out the <a href="${githubUrl}">notebook</a> that generated this visualization in <a href="${colabUrl}"> Colab</a> or the <a href="${callystoUrl}">Callysto Hub</a>.</p>`;
-      document.getElementById('gitpullParagraph').innerHTML = gitpullParagraph;
+      var parag = `<p>Check out the <a href="${githubUrl}">notebook</a> that generated this visualization in <a href="${colabUrl}"> Colab</a> or the <a href="${callystoUrl}">Callysto Hub</a>.</p>`;
+      return parag;
+    }
+
+    // insert the gitpull links
+    try {
+      document.getElementById('gitpullParagraph').innerHTML = gitpullLinks(githubUrl);
     } catch (error) {
       console.error('Error:', error);
     }
@@ -88,18 +92,20 @@
 
     const savedAnswers = JSON.parse(localStorage.getItem(fileName + 'Answers'));
     if (savedAnswers) {
-      document.getElementById('question1').value = savedAnswers.question1 || '';
-      document.getElementById('question2').value = savedAnswers.question2 || '';
-      document.getElementById('question3').value = savedAnswers.question3 || '';
+      questions.forEach((_, index) => {
+        const input = document.getElementById(`question${index + 1}`);
+        if (input && savedAnswers[`question${index + 1}`]) {
+          input.value = savedAnswers[`question${index + 1}`];
+        }
+      });
     }
 
     function saveAnswers() {
-      const answers = {
-        question1: document.getElementById('question1').value,
-        question2: document.getElementById('question2').value,
-        question3: document.getElementById('question3').value
-      };
-      localStorage.setItem(fileName + 'Answers', JSON.stringify(answers)); // Fixed: Unique key
+      const answers = {};
+      questions.forEach((_, index) => {
+        answers[`question${index + 1}`] = document.getElementById(`question${index + 1}`).value;
+      });
+      localStorage.setItem(fileName + 'Answers', JSON.stringify(answers));
       console.log('Answers saved.');
     }
 
@@ -119,12 +125,10 @@
     });
 
     function copyAnswers() {
-      const answers = [
-        document.getElementById('question1').value,
-        document.getElementById('question2').value,
-        document.getElementById('question3').value
-      ];
-      const answerText = questions.map((questionText, questionNumber) => `${questionNumber + 1}. ${questionText}\nAnswer: ${answers[questionNumber]}\n`).join('\n');
+      const answerText = questions.map((questionText, index) => {
+        const answer = document.getElementById(`question${index + 1}`).value;
+        return `${index + 1}. ${questionText}\nAnswer: ${answer}\n`;
+      }).join('\n');
 
       navigator.clipboard.writeText(answerText).then(() => {
         alert('Answers have been copied to your clipboard');
