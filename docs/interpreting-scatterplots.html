@@ -23,14 +23,23 @@
       href="https://en.wikipedia.org/wiki/Scatter_plot">scatterplot</a> that shows how NBA players' field goal
     percentages relate to the points they scored. The data are from the 2024-2025 season.</p>
 
+  <p class="paragraph">We've also added a <b>1st Order Fit</b> (also known as a <b>Trendline</b>). This is the straight solid line that best fits all the data points. It helps us see the overall "direction" of the relationship—for example, do players who score more points generally have a higher or lower field goal percentage?</p>
+
   <div id="visualization-container">
     <iframe src="visualizations/field_goal_percentage_vs_points.html"
       style="width:100%; height:800px; border:none;"></iframe>
   </div>
 
   <p class="paragraph">Hover over different points to see player names and statistics. Identify some players that
-    <b>stand out</b> from the rest (<a href="https://en.wikipedia.org/wiki/Outlier">outliers</a>).
+    <b>stand out</b> from the rest (<a href="https://en.wikipedia.org/wiki/Outlier">outliers</a>). Look for players who are far above or below the trendline.
   </p>
+
+  <h3>How to Interpret the Trendline</h3>
+  <ul>
+    <li><b>Relationship</b>: If the line goes up as points go up, there is a <b>positive relationship</b>. If it goes down, it's a <b>negative relationship</b>.</li>
+    <li><b>Outliers</b>: Points that are far away from the trendline are called <b>outliers</b>. These are players whose performance is unusual compared to the rest of the league.</li>
+    <li><b>Consistency</b>: Are most points clustered near the line, or are they spread out everywhere?</li>
+  </ul>
 
   <footer>
     <h3>Questions</h3>
@@ -45,9 +54,9 @@
 
   <script>
     const questions = [
-      "Name one player who stands out in this visualization.",
-      "Why do you think this player is an outlier?",
-      "If you were the coach, what questions would you ask about this player?"
+      "Name one player who stands out as an outlier (far from the trendline).",
+      "Looking at the trendline, does there seem to be a positive or negative relationship between points and FG%?",
+      "If a player is an outlier ABOVE the trendline, what does that tell you about their efficiency?"
     ];
 
     const githubUrl = "https://github.com/Data-Dunkers/student/blob/main/activities/interpreting-scatterplots.ipynb";

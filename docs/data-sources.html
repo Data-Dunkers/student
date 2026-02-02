@@ -37,7 +37,12 @@
       <p>The "gold standard" for data exchange. It's a simple text file that can be read by almost any software. You can load these from your computer or directly from a web URL.</p>
       
       <h4>2. Google Sheets</h4>
-      <p>Perfect for teamwork! You can collect data in a spreadsheet and, by modifying the URL to end with <code>/export?format=csv</code>, allow Python to read it directly without any manual downloads.</p>
+      <p>Perfect for teamwork! You can collect data in a spreadsheet and, by modifying the URL, allow Python to read it directly without any manual downloads. The steps are:</p>
+      <ol>
+        <li><b>Share the Sheet</b>: Set the access to "Anyone with the link".</li>
+        <li><b>Copy the Link</b>: Copy the URL of your Google Sheet.</li>
+        <li><b>Modify the URL</b>: Replace the end of the URL (everything after the last <code>/</code>) with <code>export?format=csv</code>.</li>
+      </ol>
       
       <h4>3. Web Scraping (HTML Tables)</h4>
       <p>Data is everywhere on the web. Python can scan a webpage and automatically extract tables (like player stats on sports news sites) so you can start analyzing them immediately.</p>
@@ -45,7 +50,7 @@
 
     <div style="text-align: center; margin-top: 30px; padding: 15px; background-color: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px;">
       <p><strong>Ready to try it yourself?</strong></p>
-      <p>The interactive notebook below will guide you through loading real Indiana Pacers data and even scraping a table from Wikipedia.</p>
+      <p>The interactive notebook below will guide you through loading real Indiana Pacers data and even scraping a table from a live webpage.</p>
       <p><i>Use the links in the footer to get started!</i></p>
     </div>
   </div>
