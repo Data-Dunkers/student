@@ -5,12 +5,10 @@ jupyterlab
 numpy
 pandas
 
-matplotlib
-seaborn
-
 plotly
 
 requests
 beautifulsoup4
+nltk
 
 lxml
