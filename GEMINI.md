@@ -28,6 +28,15 @@ Repository for student-facing Jupyter notebook activities and supporting HTML ex
 - Export HTML versions of notebooks into `activities/HTML-Exports/` to keep outputs alongside source without committing them.
 - If you host the static site, point to `docs/index.html` or generate fresh links after adding new lessons.
 
+## Index File Management
+
+To manage the progression of lessons as they are developed, we use two separate index files in `docs/`:
+
+- **`index2.html` (Master Backup):** This is the master index. It contains the full list of all lessons, including those marked as *(forthcoming)*. It should be used as the primary source of truth for the complete curriculum.
+- **`index.html` (Student View):** This is a pruned version of the master index. It only displays lessons that are finished and ready for students.
+
+**Important:** Any structural changes, description updates, or new lesson additions must be applied to **both** files to ensure consistency between the internal roadmap and the external student portal.
+
 ## Lesson Page Template Requirements
 
 To ensure consistency across the student portal, all lesson pages in `docs/` must follow the standardized format established in `docs/shot-charts.html`.
