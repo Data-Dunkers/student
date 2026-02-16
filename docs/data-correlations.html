@@ -22,25 +22,35 @@
     />
     <h2>Data Correlations</h2>
     <p class="paragraph">
-      In this notebook we will look for <a href="https://en.wikipedia.org/wiki/Correlation">correlations</a> in NBA player statistics from the 2024-2025 season. Correlations help us understand how different statistics relate to each other—for example, do players who play more minutes also score more points?
+      This visualization shows the <a href="https://en.wikipedia.org/wiki/Correlation">correlations</a> between different NBA player statistics from the 2024-2025 season as a correlation <a href="https://en.wikipedia.org/wiki/Matrix_(mathematics)">matrix</a>.
     </p>
 
-    <h3>Key Concepts:</h3>
-    <ul>
-      <li><strong>Correlation:</strong> A statistical measure that describes the size and direction of a relationship between two variables.</li>
-      <li><strong>Correlation Matrix:</strong> A table showing correlation coefficients between variables. Each cell in the table shows the correlation between two variables.</li>
-      <li><strong>Positive Correlation:</strong> As one variable increases, the other also tends to increase (e.g., Minutes Played and Points).</li>
-      <li><strong>Negative Correlation:</strong> As one variable increases, the other tends to decrease.</li>
-    </ul>
-
-    <div id="visualization-container" style="text-align: center; margin: 20px 0;">
-      <iframe src="visualizations/correlation_matrix.html" width="100%" height="850px" frameborder="0"></iframe>
-      <p><i>Hover your mouse over different squares to see the variable names and how correlated they are.</i></p>
+    <div id="visualization-container">
+      <iframe
+        src="visualizations/nba_data_correlation_matrix.html"
+        style="width: 100%; height: 850px; border: none"
+      ></iframe>
     </div>
-
     <p class="paragraph">
-      The values in the matrix range from -1.00 to 1.00. A value of 1.00 means a perfect positive correlation, while -1.00 would be a perfect negative correlation. A value near 0.00 means there is little to no linear relationship between the variables.
+        Hover your mouse over different squares to see the variable names and how correlated they are.
     </p>
+
+    <h3>Column Reference</h3>
+    <ul>
+        <li><strong>GP</strong> — Games played</li>
+        <li><strong>MIN</strong> — Minutes per game</li>
+        <li><strong>PTS</strong> — Points per game</li>
+        <li><strong>FGM / FGA / FG%</strong> — Field goals made, attempted, percentage</li>
+        <li><strong>3PM / 3PA / 3P%</strong> — Three-pointers made, attempted, percentage</li>
+        <li><strong>FTM / FTA / FT%</strong> — Free throws made, attempted, percentage</li>
+        <li><strong>REB</strong> — Rebounds</li>
+        <li><strong>AST</strong> — Assists per game</li>
+        <li><strong>STL</strong> — Steals per game</li>
+        <li><strong>BLK</strong> — Blocks per game</li>
+        <li><strong>TO</strong> — Turnovers per game</li>
+        <li><strong>DD2</strong> — <a href="https://en.wikipedia.org/wiki/Double-double">double-doubles</a>: games in which the player achieved double-digits in <em>two</em> stats from PTS, REB, AST, STL, BLK</li>
+        <li><strong>TD3</strong> — <a href="https://en.wikipedia.org/wiki/Double-double#Triple-double">triple-doubles</a>: games in which the player achieved double-digits in <em>three</em> stats from PTS, REB, AST, STL, BLK</li>
+    </ul>
 
     <footer>
       <h3>Reflection Questions</h3>
@@ -142,10 +152,9 @@
       function saveAnswers() {
         const answers = {};
         questions.forEach((_, index) => {
-          const input = document.getElementById(`question${index + 1}`);
-          if (input) {
-            answers[`question${index + 1}`] = input.value;
-          }
+          answers[`question${index + 1}`] = document.getElementById(
+            `question${index + 1}`,
+          ).value;
         });
         localStorage.setItem(fileName + "Answers", JSON.stringify(answers));
         console.log("Answers saved.");
@@ -171,8 +180,9 @@
       function copyAnswers() {
         const answerText = questions
           .map((questionText, index) => {
-            const answerInput = document.getElementById(`question${index + 1}`);
-            const answer = answerInput ? answerInput.value : "";
+            const answer = document.getElementById(
+              `question${index + 1}`,
+            ).value;
             return `${index + 1}. ${questionText}\nAnswer: ${answer}\n`;
           })
           .join("\n");
