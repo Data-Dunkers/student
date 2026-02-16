@@ -1,0 +1,191 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="generator" content="RSD 5.0.3490" />
+    <title>Data Dunkers Visualizations - Data Correlations</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin-left: 2%;
+        margin-right: 2%;
+      }
+    </style>
+  </head>
+
+  <body>
+    <img
+      src="https://github.com/Data-Dunkers/lessons/blob/main/images/top-banner.jpg?raw=true"
+      alt="Data Dunkers Banner"
+      style="width: 50%; height: auto; display: block; margin: 0 auto"
+    />
+    <h2>Data Correlations</h2>
+    <p class="paragraph">
+      In this notebook we will look for <a href="https://en.wikipedia.org/wiki/Correlation">correlations</a> in NBA player statistics from the 2024-2025 season. Correlations help us understand how different statistics relate to each other—for example, do players who play more minutes also score more points?
+    </p>
+
+    <h3>Key Concepts:</h3>
+    <ul>
+      <li><strong>Correlation:</strong> A statistical measure that describes the size and direction of a relationship between two variables.</li>
+      <li><strong>Correlation Matrix:</strong> A table showing correlation coefficients between variables. Each cell in the table shows the correlation between two variables.</li>
+      <li><strong>Positive Correlation:</strong> As one variable increases, the other also tends to increase (e.g., Minutes Played and Points).</li>
+      <li><strong>Negative Correlation:</strong> As one variable increases, the other tends to decrease.</li>
+    </ul>
+
+    <div id="visualization-container" style="text-align: center; margin: 20px 0;">
+      <iframe src="visualizations/correlation_matrix.html" width="100%" height="850px" frameborder="0"></iframe>
+      <p><i>Hover your mouse over different squares to see the variable names and how correlated they are.</i></p>
+    </div>
+
+    <p class="paragraph">
+      The values in the matrix range from -1.00 to 1.00. A value of 1.00 means a perfect positive correlation, while -1.00 would be a perfect negative correlation. A value near 0.00 means there is little to no linear relationship between the variables.
+    </p>
+
+    <footer>
+      <h3>Reflection Questions</h3>
+      <p class="questions" id="questions"></p>
+      <p style="text-align: center">
+        <button
+          onclick="copyAnswers()"
+          style="padding: 10px 20px; margin-top: 10px"
+        >
+          Copy Answers
+        </button>
+      </p>
+      <p id="gitpullParagraph"></p>
+      <p style="text-align: center">
+        <a href="index.html">home</a> | <a href="basketball-metrics.html">next</a>
+      </p>
+      <img
+        src="https://github.com/Data-Dunkers/lessons/blob/main/images/bottom-banner.jpg?raw=true"
+        alt="Data Dunkers Bottom Banner"
+        style="width: 50%; height: auto; display: block; margin: 0 auto"
+      />
+    </footer>
+
+    <script>
+      const questions = [
+        "Why is there a diagonal line with 1.00 (100%) correlations?",
+        "Which variables are most strongly correlated with minutes played (MIN)? Why do you think that is?",
+        "What are some other variable pairs that are strongly correlated? Why might they be correlated?",
+        "What are some variable pairs that are negatively correlated? Why might that be?",
+        "Is there anything surprising about the correlations in the data?",
+      ];
+      const githubUrl =
+        "https://github.com/Data-Dunkers/student/blob/main/activities/data-correlations.ipynb";
+
+      function gitpullLinks(githubUrl) {
+        var colabUrl =
+          "https://colab.research.google.com/github/" +
+          githubUrl.split("github.com/")[1];
+        var res = githubUrl.split("/");
+        var site = res[2];
+        var user = res[3];
+        var repo = res[4];
+        var treeBlob = res[5];
+        var branch = res[6];
+        var callystoUrl =
+          "https://hub.callysto.ca/jupyter/hub/user-redirect/git-pull?repo=";
+        if (site == "github.com") {
+          if (treeBlob) {
+            var subPath = githubUrl.substring(
+              githubUrl.indexOf(branch) + branch.length + 1,
+            );
+            callystoUrl +=
+              encodeURIComponent("https://github.com/" + user + "/") +
+              repo +
+              "&branch=" +
+              branch +
+              "&subPath=" +
+              subPath +
+              "&depth=1";
+          } else {
+            callystoUrl += githubUrl;
+          }
+        }
+        var parag = `<p>Check out the <a href="${githubUrl}">notebook</a> that generated this activity in <a href="${colabUrl}"> Colab</a> or the <a href="${callystoUrl}">Callysto Hub</a>.</p>`;
+        return parag;
+      }
+
+      // insert the gitpull links
+      try {
+        document.getElementById("gitpullParagraph").innerHTML =
+          gitpullLinks(githubUrl);
+      } catch (error) {
+        console.error("Error:", error);
+      }
+
+      // add the questions
+      questions.forEach((question, index) => {
+        const questionHTML = `<label for="question${index + 1}">${index + 1}. ${question}</label><br>
+                          <input type="text" style="width:80%; padding:5px; margin:10px 0;" id="question${index + 1}"><br>`;
+        document
+          .getElementById("questions")
+          .insertAdjacentHTML("beforeend", questionHTML);
+      });
+
+      const fileName = window.location.pathname.split("/").pop().split(".")[0];
+
+      const savedAnswers = JSON.parse(
+        localStorage.getItem(fileName + "Answers"),
+      );
+      if (savedAnswers) {
+        questions.forEach((_, index) => {
+          const input = document.getElementById(`question${index + 1}`);
+          if (input && savedAnswers[`question${index + 1}`]) {
+            input.value = savedAnswers[`question${index + 1}`];
+          }
+        });
+      }
+
+      function saveAnswers() {
+        const answers = {};
+        questions.forEach((_, index) => {
+          const input = document.getElementById(`question${index + 1}`);
+          if (input) {
+            answers[`question${index + 1}`] = input.value;
+          }
+        });
+        localStorage.setItem(fileName + "Answers", JSON.stringify(answers));
+        console.log("Answers saved.");
+      }
+
+      function debounce(fn, delay) {
+        let timerId;
+        return (...args) => {
+          clearTimeout(timerId);
+          timerId = setTimeout(() => fn(...args), delay);
+        };
+      }
+
+      const saveAnswersDebounced = debounce(saveAnswers, 200);
+      document
+        .getElementById("questions")
+        .addEventListener("input", (event) => {
+          if (event.target.matches('input[type="text"]')) {
+            saveAnswersDebounced();
+          }
+        });
+
+      function copyAnswers() {
+        const answerText = questions
+          .map((questionText, index) => {
+            const answerInput = document.getElementById(`question${index + 1}`);
+            const answer = answerInput ? answerInput.value : "";
+            return `${index + 1}. ${questionText}\nAnswer: ${answer}\n`;
+          })
+          .join("\n");
+
+        navigator.clipboard.writeText(answerText).then(
+          () => {
+            alert("Answers have been copied to your clipboard");
+          },
+          () => {
+            alert("Failed to copy answers");
+          },
+        );
+      }
+    </script>
+  </body>
+</html>
