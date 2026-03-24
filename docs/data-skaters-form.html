@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Skaters Form</title>
+    
+    <style>
+        :root {
+            --primary: #FF6600; 
+            --bg-dark: #121212;
+            --bg-card: #1E1E1E;
+            --text-main: #FFFFFF;
+            --text-muted: #AAAAAA;
+            --border: #333333;
+            --success: #22C55E;
+            --error: #EF4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            flex-direction: column; /* Stack form and table */
+            align-items: center;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .form-container, .stats-container {
+            background-color: var(--bg-card);
+            padding: 2.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            margin-bottom: 2rem;
+        }
+
+        .stats-container {
+            max-width: 600px; /* Stats can be a bit wider */
+        }
+
+        .header { text-align: center; margin-bottom: 2rem; }
+        .header h1 { color: var(--primary); margin: 0; text-transform: uppercase; letter-spacing: 2px; font-size: 1.8rem; }
+
+        .form-group { margin-bottom: 1.5rem; }
+        label { display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-weight: 600; }
+
+        input, select {
+            width: 100%; padding: 12px; background-color: #262626; border: 1px solid var(--border);
+            border-radius: 6px; color: var(--text-main); font-size: 1rem; box-sizing: border-box;
+        }
+
+        input:focus, select:focus { outline: none; border-color: var(--primary); }
+
+        button.submit-btn {
+            width: 100%; padding: 15px; background-color: var(--primary); color: white; border: none;
+            border-radius: 6px; font-size: 1.1rem; font-weight: bold; text-transform: uppercase; cursor: pointer;
+        }
+
+        /* Stats Table Styling */
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th { text-align: left; color: var(--primary); border-bottom: 2px solid var(--border); padding: 10px; }
+        td { padding: 10px; border-bottom: 1px solid var(--border); color: var(--text-main); }
+        tr:hover { background-color: rgba(255, 102, 0, 0.05); }
+
+        #statusMessage {
+            margin-top: 1rem; text-align: center; padding: 10px; border-radius: 6px; display: none;
+        }
+        .status-success { background-color: rgba(34, 197, 94, 0.2); color: var(--success); border: 1px solid var(--success); }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <div class="header">
+        <h1>Data Skaters</h1>
+        <p>Log Your Stats</p>
+    </div>
+
+    <form id="dunkForm">
+        <div class="form-group">
+            <label for="nickname">Nickname</label>
+            <input type="text" id="nickname" name="nickname" placeholder="PS43" required>
+        </div>
+
+        <div class="form-group">
+            <label for="challenge">Challenge Type</label>
+            <select id="challenge" name="challenge" required>
+                <option value="" disabled selected>Select Challenge</option>
+                <option value="Sniper">Sniper</option>
+                <option value="Playmaker">Playmaker</option>
+                <option value="Distance">Distance</option>
+                <option value="Power Forward">Power Forward</option>
+                <option value="Two-way Forward">Two-way Forward</option>
+                <option value="Speed Winger">Speed Winger</option>
+                <option value="Defensive Defenseman">Defensive Defenseman</option>
+                <option value="Offensive Defenseman">Offensive Defenseman</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="distance">Distance (meters)</label>
+            <input type="number" id="distance" name="distance" step="0.1" placeholder="0.0" required>
+        </div>
+
+        <div class="form-group">
+            <label for="shots_made">Shots Made</label>
+            <input type="number" id="shots_made" name="shots_made" min="0" placeholder="0" required>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">Submit</button>
+    </form>
+    <div id="statusMessage"></div>
+</div>
+
+<div class="stats-container">
+    <div class="header" style="margin-bottom: 1rem;">
+        <h2 style="color: var(--primary); text-transform: uppercase;">Your History</h2>
+        <p id="statsFor">Nickname: --</p>
+    </div>
+    <table id="statsTable">
+        <thead>
+            <tr>
+                <th>Challenge</th>
+                <th>Distance</th>
+                <th>Shots</th>
+            </tr>
+        </thead>
+        <tbody id="statsBody">
+            </tbody>
+    </table>
+</div>
+
+<script>
+    const form = document.getElementById('dunkForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const statusMessage = document.getElementById('statusMessage');
+    const statsBody = document.getElementById('statsBody');
+    const nicknameInput = document.getElementById('nickname');
+    const statsForLabel = document.getElementById('statsFor');
+
+    const PB_URL = 'https://api.datadunkers.ca/api/collections/test/records';
+
+    // 1. Initial Setup: Load last nickname from storage
+    window.onload = () => {
+        const savedNick = localStorage.getItem('lastNickname');
+        if (savedNick) {
+            nicknameInput.value = savedNick;
+            updateStats(savedNick);
+        }
+    };
+
+    // 2. Function to fetch and display data
+    async function updateStats(nick) {
+        if (!nick) return;
+        statsForLabel.textContent = `Nickname: ${nick}`;
+
+        try {
+            // Fetch records filtered by Nickname, sorted by newest first
+            const res = await fetch(`${PB_URL}?filter=(Nickname='${nick}')&sort=-created`);
+            const data = await res.json();
+
+            statsBody.innerHTML = ''; // Clear table
+            
+            data.items.forEach(record => {
+                const row = `<tr>
+                    <td>${record.Challenge}</td>
+                    <td>${record.Distance}m</td>
+                    <td>${record.ShotsMade}</td>
+                </tr>`;
+                statsBody.innerHTML += row;
+            });
+        } catch (err) {
+            console.error("Error loading stats:", err);
+        }
+    }
+
+    const showStatus = (message, type) => {
+        statusMessage.textContent = message;
+        statusMessage.className = type === 'success' ? 'status-success' : 'status-error';
+        statusMessage.style.display = 'block';
+        setTimeout(() => { statusMessage.style.display = 'none'; }, 3000);
+    };
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+
+        const data = {
+            Nickname: nicknameInput.value,
+            Challenge: document.getElementById('challenge').value,
+            Distance: parseFloat(document.getElementById('distance').value),
+            ShotsMade: parseInt(document.getElementById('shots_made').value, 10),
+        };
+
+        localStorage.setItem('lastNickname', data.Nickname);
+
+        try {
+            const response = await fetch(PB_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            if (!response.ok) throw new Error("Submission Failed");
+
+            showStatus('Data logged successfully.', 'success');
+            form.reset();
+            nicknameInput.value = data.Nickname; // Keep nick for next entry
+            
+            // Refresh the table
+            updateStats(data.Nickname);
+
+        } catch (error) {
+            showStatus(`Error: ${error.message}`, 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit';
+        }
+    });
+</script>
+
+</body>
+</html>
