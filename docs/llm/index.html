@@ -8,6 +8,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
 <style>
 :root{--green:#1a9e6e;--green-light:#e8f7f1;--green-mid:#5DCAA5;--ink:#111310;--ink2:#3a3d38;--ink3:#7a7d78;--bg:#f5f5f0;--white:#ffffff;--border:rgba(0,0,0,0.09);--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Syne',sans-serif;--radius:12px}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -65,18 +68,30 @@ select{font-size:12px;font-family:var(--sans);padding:5px 10px;border-radius:8px
 .export-strip{display:flex;gap:8px}
 .exp-btn{font-size:11px;font-family:var(--sans);font-weight:500;padding:5px 11px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--ink3);cursor:pointer;transition:all .12s}
 .exp-btn:hover{border-color:var(--green);color:var(--green)}
-.code-panel{grid-column:1/-1;border-top:1px solid var(--border);background:var(--ink)}
-.code-toggle{width:100%;display:flex;align-items:center;gap:8px;padding:10px 20px;background:none;border:none;cursor:pointer;color:#aaa;font-family:var(--sans);font-size:12px;font-weight:500;text-align:left;transition:color .15s}
-.code-toggle:hover{color:#fff}
-.code-badge{background:var(--green);color:#fff;font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;letter-spacing:.04em}
-.code-arrow{margin-left:auto;font-size:10px;transition:transform .2s}
-.code-toggle.open .code-arrow{transform:rotate(90deg)}
-.code-body{display:none;padding:0 20px 14px}
+.code-panel{grid-column:1/-1;border-top:1px solid var(--border);background:#1e1e2e}
+.code-header{display:flex;align-items:center;gap:0;padding:0 12px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.code-badge{background:var(--green);color:#fff;font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px;letter-spacing:.04em;margin-right:12px;flex-shrink:0}
+.code-tab{font-family:var(--sans);font-size:12px;font-weight:500;padding:9px 14px;background:none;border:none;border-bottom:2px solid transparent;color:#888;cursor:pointer;transition:all .15s;white-space:nowrap}
+.code-tab:hover{color:#ccc}
+.code-tab.active{color:#fff;border-bottom-color:var(--green)}
+.code-expand{margin-left:auto;font-family:var(--sans);font-size:11px;padding:5px 10px;background:none;border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#888;cursor:pointer;transition:all .15s}
+.code-expand:hover{color:#fff;border-color:rgba(255,255,255,0.35)}
+.code-header{display:flex;align-items:center;gap:0;padding:0 12px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.code-tab{font-family:var(--sans);font-size:12px;font-weight:500;padding:9px 14px;background:none;border:none;border-bottom:2px solid transparent;color:#888;cursor:pointer;transition:all .15s;white-space:nowrap}
+.code-tab:hover{color:#ccc}
+.code-tab.active{color:#fff;border-bottom-color:var(--green)}
+.code-expand{margin-left:auto;font-family:var(--sans);font-size:11px;padding:5px 10px;background:none;border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#888;cursor:pointer;transition:all .15s}
+.code-expand:hover{color:#fff;border-color:rgba(255,255,255,0.35)}
+.code-body{display:none;padding:0 16px 14px;max-height:260px;overflow-y:auto}
 .code-body.open{display:block}
-.code-lines{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.code-body::-webkit-scrollbar{width:4px}
+.code-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:4px}
+.code-lines{display:flex;flex-direction:column;gap:4px;padding-top:10px}
 .code-line{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:baseline}
 .code-text{font-family:var(--mono);font-size:12px;color:#a8d8bc;white-space:pre}
 .code-comment{font-family:var(--sans);font-size:11px;color:#666}
+.code-body pre[class*=language-]{margin:10px 0 4px;border-radius:8px;font-size:12px;line-height:1.6}
+.code-body pre[class*=language-]{margin:10px 0 4px;border-radius:8px;font-size:12px;line-height:1.6;max-height:220px;overflow:auto}
 @media(max-width:680px){.main{grid-template-columns:1fr;grid-template-rows:1fr 1fr auto}.chat-col{border-right:none;border-bottom:1px solid var(--border)}.right-col{grid-row:2}}
 </style>
 </head>
@@ -137,13 +152,15 @@ select{font-size:12px;font-family:var(--sans);padding:5px 10px;border-radius:8px
   </div>
 
   <div class="code-panel" id="code-panel" style="display:none">
-    <button class="code-toggle" id="code-toggle" onclick="toggleCode()">
+    <div class="code-header">
       <span class="code-badge">Python</span>
-      <span>See the code that made this chart</span>
-      <span class="code-arrow">›</span>
-    </button>
+      <button class="code-tab active" id="tab-explained" onclick="switchTab('explained')">Explained</button>
+      <button class="code-tab" id="tab-code" onclick="switchTab('code')">Code</button>
+      <button class="code-expand" id="code-expand-btn" onclick="toggleCode()">Show ›</button>
+    </div>
     <div class="code-body" id="code-body">
-      <div class="code-lines" id="code-lines"></div>
+      <div id="pane-explained"><div class="code-lines" id="code-lines"></div></div>
+      <div id="pane-code" style="display:none"><pre><code class="language-python" id="code-highlight"></code></pre></div>
     </div>
   </div>
 </div>
@@ -366,8 +383,21 @@ function renderChart(data,type){
 function showCodePanel(explanation){
   document.getElementById('code-panel').style.display='block';
   document.getElementById('code-lines').innerHTML=explanation.map(e=>`<div class="code-line"><div class="code-text">${esc(e.line)}</div><div class="code-comment">← ${esc(e.comment)}</div></div>`).join('');
+  const full=`import pandas as pd\nimport plotly.express as px\n\ndf = pd.read_csv("${BASE}${state.filename}")\n\n${state.lastCode}`;
+  const el=document.getElementById('code-highlight');
+  el.textContent=full;
+  if(window.Prism) Prism.highlightElement(el);
 }
-function toggleCode(){document.getElementById('code-body').classList.toggle('open');document.getElementById('code-toggle').classList.toggle('open');}
+function toggleCode(){
+  const open=document.getElementById('code-body').classList.toggle('open');
+  document.getElementById('code-expand-btn').textContent=open?'Hide ‹':'Show ›';
+}
+function switchTab(tab){
+  document.getElementById('tab-explained').classList.toggle('active',tab==='explained');
+  document.getElementById('tab-code').classList.toggle('active',tab==='code');
+  document.getElementById('pane-explained').style.display=tab==='explained'?'block':'none';
+  document.getElementById('pane-code').style.display=tab==='code'?'block':'none';
+}
 
 function buildNotebook(){
   const src=`import pandas as pd\nimport plotly.express as px\n\n# Load the dataset from Data Dunkers GitHub repo\ndf = pd.read_csv("${BASE}${state.filename}")\n\n# Generated analysis\n${state.lastCode}`;
