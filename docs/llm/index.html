@@ -9,824 +9,381 @@
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-:root {
-  --green: #1a9e6e;
-  --green-light: #e8f7f1;
-  --green-mid: #5DCAA5;
-  --ink: #111310;
-  --ink2: #3a3d38;
-  --ink3: #7a7d78;
-  --bg: #f5f5f0;
-  --white: #ffffff;
-  --border: rgba(0,0,0,0.09);
-  --mono: 'DM Mono', monospace;
-  --sans: 'DM Sans', sans-serif;
-  --display: 'Syne', sans-serif;
-  --radius: 12px;
-}
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; }
-body { font-family: var(--sans); background: var(--bg); color: var(--ink); font-size: 14px; line-height: 1.6; }
-
-/* ── Layout ── */
-.shell { display: grid; grid-template-rows: 56px 1fr; height: 100vh; min-height: 600px; }
-
-/* ── Top bar ── */
-.topbar {
-  display: flex; align-items: center; gap: 16px; padding: 0 20px;
-  background: var(--white); border-bottom: 1px solid var(--border);
-  position: relative; z-index: 10;
-}
-.logo { font-family: var(--display); font-size: 18px; font-weight: 700; letter-spacing: -.02em; white-space: nowrap; }
-.logo em { color: var(--green); font-style: normal; }
-.sport-pills { display: flex; gap: 5px; flex-wrap: wrap; }
-.pill {
-  font-size: 12px; font-weight: 500; padding: 4px 11px; border-radius: 20px;
-  border: 1px solid var(--border); background: transparent; color: var(--ink3);
-  cursor: pointer; transition: all .15s; font-family: var(--sans);
-}
-.pill:hover { border-color: var(--green); color: var(--green); }
-.pill.active { background: var(--green); border-color: var(--green); color: #fff; }
-.ds-wrap { margin-left: auto; display: flex; align-items: center; gap: 8px; }
-.ds-label { font-size: 11px; color: var(--ink3); white-space: nowrap; }
-select {
-  font-size: 12px; font-family: var(--sans); padding: 5px 10px;
-  border-radius: 8px; border: 1px solid var(--border);
-  background: var(--bg); color: var(--ink); cursor: pointer; outline: none;
-}
-
-/* ── Main grid ── */
-.main { display: grid; grid-template-columns: 340px 1fr; grid-template-rows: 1fr auto; overflow: hidden; }
-
-/* ── Chat column ── */
-.chat-col { display: flex; flex-direction: column; border-right: 1px solid var(--border); background: var(--white); overflow: hidden; }
-.chat-scroll { flex: 1; overflow-y: auto; padding: 16px 16px 0; display: flex; flex-direction: column; gap: 10px; }
-.chat-scroll::-webkit-scrollbar { width: 3px; }
-.chat-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-.msg { max-width: 88%; font-size: 13px; line-height: 1.55; padding: 9px 12px; border-radius: 14px; animation: fadeUp .2s ease; }
-@keyframes fadeUp { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: none; } }
-.msg.bot { background: var(--bg); border-radius: 4px 14px 14px 14px; align-self: flex-start; }
-.msg.user { background: var(--green); color: #fff; border-radius: 14px 4px 14px 14px; align-self: flex-end; }
-.msg.thinking { background: none; color: var(--ink3); font-style: italic; align-self: flex-start; padding-left: 0; font-size: 12px; }
-.thinking-dots span { animation: blink 1.2s infinite; display: inline-block; }
-.thinking-dots span:nth-child(2) { animation-delay: .2s; }
-.thinking-dots span:nth-child(3) { animation-delay: .4s; }
-@keyframes blink { 0%,80%,100%{opacity:.2} 40%{opacity:1} }
-
-.chips-row { padding: 10px 16px 6px; display: flex; gap: 5px; flex-wrap: wrap; border-top: 1px solid var(--border); }
-.chip {
-  font-size: 11px; font-family: var(--sans); padding: 4px 9px; border-radius: 20px;
-  border: 1px solid var(--border); background: var(--bg); color: var(--ink2);
-  cursor: pointer; white-space: nowrap; transition: all .12s;
-}
-.chip:hover { border-color: var(--green); color: var(--green); background: var(--green-light); }
-.input-row { display: flex; gap: 8px; padding: 10px 16px 14px; }
-.input-row input {
-  flex: 1; font-family: var(--sans); font-size: 13px;
-  padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);
-  background: var(--bg); color: var(--ink); outline: none;
-  transition: border-color .15s;
-}
-.input-row input:focus { border-color: var(--green); }
-.input-row input::placeholder { color: var(--ink3); }
-.send-btn {
-  font-family: var(--display); font-size: 13px; font-weight: 600;
-  padding: 8px 16px; border-radius: 8px; border: none;
-  background: var(--green); color: #fff; cursor: pointer; transition: opacity .15s;
-  white-space: nowrap;
-}
-.send-btn:hover { opacity: .88; }
-.send-btn:disabled { opacity: .4; cursor: not-allowed; }
-
-/* ── Right column ── */
-.right-col { display: grid; grid-template-rows: auto 1fr; overflow: hidden; background: var(--white); }
-
-/* Stats bar */
-.stats-bar {
-  display: flex; gap: 12px; padding: 12px 20px;
-  border-bottom: 1px solid var(--border); background: var(--bg);
-}
-.stat { flex: 1; }
-.stat-label { font-size: 10px; font-weight: 500; color: var(--ink3); text-transform: uppercase; letter-spacing: .08em; }
-.stat-val { font-family: var(--display); font-size: 20px; font-weight: 700; color: var(--ink); line-height: 1.2; }
-.stat-sub { font-size: 11px; color: var(--ink3); }
-
-/* Chart area */
-.chart-wrap { padding: 20px; overflow: hidden; display: flex; flex-direction: column; }
-.chart-placeholder {
-  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  border: 1.5px dashed var(--border); border-radius: var(--radius); gap: 8px;
-}
-.chart-placeholder svg { opacity: .25; }
-.chart-placeholder p { font-size: 13px; color: var(--ink3); }
-.chart-container { flex: 1; position: relative; min-height: 0; }
-
-/* ── Code panel (full width bottom) ── */
-.code-panel { grid-column: 1 / -1; border-top: 1px solid var(--border); background: var(--ink); }
-.code-toggle {
-  width: 100%; display: flex; align-items: center; gap: 8px; padding: 10px 20px;
-  background: none; border: none; cursor: pointer; color: #aaa;
-  font-family: var(--sans); font-size: 12px; font-weight: 500; text-align: left;
-  transition: color .15s;
-}
-.code-toggle:hover { color: #fff; }
-.code-toggle .badge {
-  background: var(--green); color: #fff; font-size: 10px; font-weight: 600;
-  padding: 2px 6px; border-radius: 4px; letter-spacing: .04em;
-}
-.code-toggle .arrow { margin-left: auto; font-size: 10px; transition: transform .2s; }
-.code-toggle.open .arrow { transform: rotate(90deg); }
-.code-body { display: none; padding: 0 20px 14px; }
-.code-body.open { display: block; }
-.code-lines { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
-.code-line { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: baseline; }
-.code-text { font-family: var(--mono); font-size: 12px; color: #a8d8bc; white-space: nowrap; }
-.code-comment { font-family: var(--sans); font-size: 11px; color: #666; }
-.export-row { display: flex; gap: 8px; flex-wrap: wrap; }
-.exp-btn {
-  font-size: 11px; font-family: var(--sans); font-weight: 500;
-  padding: 5px 11px; border-radius: 6px; border: 1px solid #333;
-  background: #1a1a1a; color: #bbb; cursor: pointer; transition: all .12s;
-}
-.exp-btn:hover { border-color: var(--green-mid); color: var(--green-mid); }
-
-/* ── API key banner ── */
-.api-banner {
-  background: #fff8e1; border-bottom: 1px solid #ffe082;
-  padding: 8px 20px; font-size: 12px; color: #795500;
-  display: flex; align-items: center; gap: 10px;
-}
-.api-banner input {
-  font-family: var(--mono); font-size: 12px; padding: 4px 8px;
-  border: 1px solid #ffe082; border-radius: 6px; background: #fff;
-  color: #333; flex: 1; max-width: 340px; outline: none;
-}
-.api-banner button {
-  font-size: 11px; padding: 4px 10px; border-radius: 6px;
-  border: 1px solid #ffe082; background: #fff; color: #795500; cursor: pointer;
-}
-
-/* ── Error ── */
-.msg.error { background: #fde8e8; color: #a00; font-size: 12px; }
-
-@media (max-width: 680px) {
-  .main { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr auto; }
-  .chat-col { border-right: none; border-bottom: 1px solid var(--border); }
-  .right-col { grid-row: 2; }
-}
+:root{--green:#1a9e6e;--green-light:#e8f7f1;--green-mid:#5DCAA5;--ink:#111310;--ink2:#3a3d38;--ink3:#7a7d78;--bg:#f5f5f0;--white:#ffffff;--border:rgba(0,0,0,0.09);--mono:'DM Mono',monospace;--sans:'DM Sans',sans-serif;--display:'Syne',sans-serif;--radius:12px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14px;line-height:1.6}
+.shell{display:grid;grid-template-rows:auto 56px 1fr;height:100vh;min-height:600px}
+.api-banner{background:#fff8e1;border-bottom:1px solid #ffe082;padding:8px 20px;font-size:12px;color:#795500;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.api-banner input{font-family:var(--mono);font-size:12px;padding:4px 8px;border:1px solid #ffe082;border-radius:6px;background:#fff;color:#333;width:260px;outline:none}
+.api-banner button{font-size:11px;padding:4px 10px;border-radius:6px;border:1px solid #ffe082;background:#fff;color:#795500;cursor:pointer;white-space:nowrap}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;gap:12px;overflow-x:auto}
+.logo{font-family:var(--display);font-size:18px;font-weight:700;letter-spacing:-.02em;white-space:nowrap}
+.logo em{color:var(--green);font-style:normal}
+.sport-pills{display:flex;gap:5px}
+.pill{font-size:12px;font-weight:500;padding:4px 11px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--ink3);cursor:pointer;transition:all .15s;white-space:nowrap;font-family:var(--sans)}
+.pill:hover{border-color:var(--green);color:var(--green)}
+.pill.active{background:var(--green);border-color:var(--green);color:#fff}
+.ds-wrap{margin-left:auto;display:flex;align-items:center;gap:8px;min-width:0}
+.ds-label{font-size:11px;color:var(--ink3);white-space:nowrap}
+select{font-size:12px;font-family:var(--sans);padding:5px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--ink);cursor:pointer;outline:none;max-width:220px}
+.main{display:grid;grid-template-columns:340px 1fr;grid-template-rows:1fr auto;overflow:hidden}
+.chat-col{display:flex;flex-direction:column;border-right:1px solid var(--border);background:var(--white);overflow:hidden}
+.chat-scroll{flex:1;overflow-y:auto;padding:16px 16px 0;display:flex;flex-direction:column;gap:10px}
+.chat-scroll::-webkit-scrollbar{width:3px}
+.chat-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.msg{max-width:88%;font-size:13px;line-height:1.55;padding:9px 12px;border-radius:14px;animation:fadeUp .2s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.msg.bot{background:var(--bg);border-radius:4px 14px 14px 14px;align-self:flex-start}
+.msg.user{background:var(--green);color:#fff;border-radius:14px 4px 14px 14px;align-self:flex-end}
+.msg.thinking{background:none;color:var(--ink3);font-style:italic;align-self:flex-start;padding-left:0;font-size:12px}
+.thinking-dots span{animation:blink 1.2s infinite;display:inline-block}
+.thinking-dots span:nth-child(2){animation-delay:.2s}
+.thinking-dots span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+.chips-row{padding:10px 16px 6px;display:flex;gap:5px;flex-wrap:wrap;border-top:1px solid var(--border)}
+.chip{font-size:11px;font-family:var(--sans);padding:4px 9px;border-radius:20px;border:1px solid var(--border);background:var(--bg);color:var(--ink2);cursor:pointer;white-space:nowrap;transition:all .12s}
+.chip:hover{border-color:var(--green);color:var(--green);background:var(--green-light)}
+.input-row{display:flex;gap:8px;padding:10px 16px 14px}
+.input-row input{flex:1;font-family:var(--sans);font-size:13px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--ink);outline:none;transition:border-color .15s}
+.input-row input:focus{border-color:var(--green)}
+.input-row input::placeholder{color:var(--ink3)}
+.send-btn{font-family:var(--display);font-size:13px;font-weight:600;padding:8px 16px;border-radius:8px;border:none;background:var(--green);color:#fff;cursor:pointer;transition:opacity .15s;white-space:nowrap}
+.send-btn:hover{opacity:.88}
+.send-btn:disabled{opacity:.4;cursor:not-allowed}
+.right-col{display:grid;grid-template-rows:auto 1fr;overflow:hidden;background:var(--white)}
+.stats-bar{display:flex;gap:12px;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--bg)}
+.stat{flex:1}
+.stat-label{font-size:10px;font-weight:500;color:var(--ink3);text-transform:uppercase;letter-spacing:.08em}
+.stat-val{font-family:var(--display);font-size:20px;font-weight:700;color:var(--ink);line-height:1.2}
+.stat-sub{font-size:11px;color:var(--ink3)}
+.chart-wrap{padding:20px;overflow:hidden;display:flex;flex-direction:column;gap:12px}
+.chart-placeholder{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1.5px dashed var(--border);border-radius:var(--radius);gap:8px}
+.chart-placeholder p{font-size:13px;color:var(--ink3)}
+.chart-container{flex:1;position:relative;min-height:0}
+.export-strip{display:flex;gap:8px}
+.exp-btn{font-size:11px;font-family:var(--sans);font-weight:500;padding:5px 11px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--ink3);cursor:pointer;transition:all .12s}
+.exp-btn:hover{border-color:var(--green);color:var(--green)}
+.code-panel{grid-column:1/-1;border-top:1px solid var(--border);background:var(--ink)}
+.code-toggle{width:100%;display:flex;align-items:center;gap:8px;padding:10px 20px;background:none;border:none;cursor:pointer;color:#aaa;font-family:var(--sans);font-size:12px;font-weight:500;text-align:left;transition:color .15s}
+.code-toggle:hover{color:#fff}
+.code-badge{background:var(--green);color:#fff;font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;letter-spacing:.04em}
+.code-arrow{margin-left:auto;font-size:10px;transition:transform .2s}
+.code-toggle.open .code-arrow{transform:rotate(90deg)}
+.code-body{display:none;padding:0 20px 14px}
+.code-body.open{display:block}
+.code-lines{display:flex;flex-direction:column;gap:4px;margin-bottom:12px}
+.code-line{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:baseline}
+.code-text{font-family:var(--mono);font-size:12px;color:#a8d8bc;white-space:pre}
+.code-comment{font-family:var(--sans);font-size:11px;color:#666}
+@media(max-width:680px){.main{grid-template-columns:1fr;grid-template-rows:1fr 1fr auto}.chat-col{border-right:none;border-bottom:1px solid var(--border)}.right-col{grid-row:2}}
 </style>
 </head>
 <body>
-
 <div class="shell">
 
-  <!-- API key banner -->
-  <div class="api-banner" id="api-banner">
-    <span>Enter your LLM API key to enable AI answers (Groq recommended — free at console.groq.com)</span>
-    <input type="password" id="api-key-input" placeholder="gsk_..." />
-    <button onclick="saveKey()">Save</button>
+<div class="api-banner" id="api-banner">
+  <span>Enter a Groq API key for AI answers — free at <strong>console.groq.com</strong></span>
+  <input type="password" id="api-key-input" placeholder="gsk_..."/>
+  <button onclick="saveKey()">Save &amp; hide</button>
+  <button onclick="document.getElementById('api-banner').style.display='none'">Use demo mode</button>
+</div>
+
+<div class="topbar">
+  <div class="logo">Data<em>Dunkers</em></div>
+  <div class="sport-pills" id="pills">
+    <button class="pill active" onclick="setSport(this,'basketball')">Basketball</button>
+    <button class="pill" onclick="setSport(this,'hockey')">Hockey</button>
+    <button class="pill" onclick="setSport(this,'lacrosse')">Lacrosse</button>
+    <button class="pill" onclick="setSport(this,'soccer')">Soccer</button>
+    <button class="pill" onclick="setSport(this,'baseball')">Baseball</button>
   </div>
-
-  <!-- Top bar -->
-  <div class="topbar">
-    <div class="logo">Data<em>Dunkers</em></div>
-    <div class="sport-pills" id="pills">
-      <button class="pill active" onclick="setSport(this,'basketball')">Basketball</button>
-      <button class="pill" onclick="setSport(this,'hockey')">Hockey</button>
-      <button class="pill" onclick="setSport(this,'soccer')">Soccer</button>
-      <button class="pill" onclick="setSport(this,'football')">Football</button>
-    </div>
-    <div class="ds-wrap">
-      <span class="ds-label">Dataset</span>
-      <select id="ds-select" onchange="loadDataset()"></select>
-    </div>
-  </div>
-
-  <!-- Main -->
-  <div class="main" id="main-grid">
-
-    <!-- Chat -->
-    <div class="chat-col">
-      <div class="chat-scroll" id="chat"></div>
-      <div class="chips-row" id="chips"></div>
-      <div class="input-row">
-        <input id="q-input" type="text" placeholder="Ask anything about the data…" onkeydown="if(event.key==='Enter') sendQ()" />
-        <button class="send-btn" id="send-btn" onclick="sendQ()">Ask ›</button>
-      </div>
-    </div>
-
-    <!-- Right: stats + chart -->
-    <div class="right-col">
-      <div class="stats-bar" id="stats-bar" style="display:none"></div>
-      <div class="chart-wrap">
-        <div class="chart-placeholder" id="chart-placeholder">
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="6" y="20" width="8" height="22" rx="2" fill="#888"/><rect x="20" y="12" width="8" height="30" rx="2" fill="#888"/><rect x="34" y="28" width="8" height="14" rx="2" fill="#888"/></svg>
-          <p>Ask a question to see a chart</p>
-        </div>
-        <div class="chart-container" id="chart-container" style="display:none">
-          <canvas id="myChart"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- Code panel -->
-    <div class="code-panel" id="code-panel" style="display:none">
-      <button class="code-toggle" id="code-toggle" onclick="toggleCode()">
-        <span class="badge">Python</span>
-        <span>See the code that made this chart</span>
-        <span class="arrow">›</span>
-      </button>
-      <div class="code-body" id="code-body">
-        <div class="code-lines" id="code-lines"></div>
-        <div class="export-row">
-          <button class="exp-btn" onclick="openColab()">Open in Google Colab ↗</button>
-          <button class="exp-btn" onclick="openJupyterHub()">Send to JupyterHub ↗</button>
-          <button class="exp-btn" onclick="copyCode()">Copy code</button>
-        </div>
-      </div>
-    </div>
-
+  <div class="ds-wrap">
+    <span class="ds-label">Dataset</span>
+    <select id="ds-select" onchange="loadDataset()"></select>
   </div>
 </div>
 
+<div class="main">
+  <div class="chat-col">
+    <div class="chat-scroll" id="chat"></div>
+    <div class="chips-row" id="chips"></div>
+    <div class="input-row">
+      <input id="q-input" type="text" placeholder="Ask anything about the data…" onkeydown="if(event.key==='Enter')sendQ()"/>
+      <button class="send-btn" id="send-btn" onclick="sendQ()">Ask ›</button>
+    </div>
+  </div>
+
+  <div class="right-col">
+    <div class="stats-bar" id="stats-bar" style="display:none"></div>
+    <div class="chart-wrap">
+      <div class="chart-placeholder" id="chart-placeholder">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" opacity=".25">
+          <rect x="6" y="20" width="8" height="22" rx="2" fill="#888"/>
+          <rect x="20" y="12" width="8" height="30" rx="2" fill="#888"/>
+          <rect x="34" y="28" width="8" height="14" rx="2" fill="#888"/>
+        </svg>
+        <p>Ask a question to see a chart</p>
+      </div>
+      <div class="chart-container" id="chart-container" style="display:none">
+        <canvas id="myChart"></canvas>
+      </div>
+      <div class="export-strip" id="export-strip" style="display:none">
+        <button class="exp-btn" onclick="downloadNotebook()">Download notebook (.ipynb)</button>
+        <button class="exp-btn" id="copy-btn" onclick="copyCode()">Copy Python code</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="code-panel" id="code-panel" style="display:none">
+    <button class="code-toggle" id="code-toggle" onclick="toggleCode()">
+      <span class="code-badge">Python</span>
+      <span>See the code that made this chart</span>
+      <span class="code-arrow">›</span>
+    </button>
+    <div class="code-body" id="code-body">
+      <div class="code-lines" id="code-lines"></div>
+    </div>
+  </div>
+</div>
+
+</div>
+
 <script>
-/* ══════════════════════════════════════════════════
-   CONFIG — edit these for your deployment
-═══════════════════════════════════════════════════ */
-const CONFIG = {
-  // Your GitHub raw CSV base URL — update to your repo
-  //csvBase: 'https://raw.githubusercontent.com/callysto/basketball-and-data-science/main/content/data/',
-  csvBase: 'https://raw.githubusercontent.com/Data-Dunkers/data/main/',
+const BASE='https://raw.githubusercontent.com/Data-Dunkers/data/main/';
+const API_ENDPOINT='https://api.groq.com/openai/v1/chat/completions';
+const API_MODEL='llama-3.1-8b-instant';
 
-  // Groq endpoint (free, fast). Swap for OpenAI or your own.
-  apiEndpoint: 'https://api.groq.com/openai/v1/chat/completions',
-  //apiModel: 'llama3-70b-8192',
-  apiModel: 'llama-3.1-8b-instant',
-
-  // Your JupyterHub base URL
-  jupyterHubUrl: 'https://hub.callysto.ca',
-
-  sports: {
-    basketball: {
-      label: 'Basketball',
-      datasets: [
-        { label: 'NBA 2023-24 player stats', file: 'nba_2324_players.csv' },
-        { label: 'NBA team standings 2024',  file: 'nba_2324_teams.csv' },
-      ],
-      chips: [
-        'Who scored the most points per game?',
-        'Which team had the best win percentage?',
-        'Compare assists vs turnovers for top players',
-        'Show points vs age — do older players score less?',
-      ]
-    },
-    hockey: {
-      label: 'Hockey',
-      datasets: [
-        { label: 'NHL 2023-24 skater stats', file: 'nhl_2324_skaters.csv' },
-        { label: 'NHL 2023-24 goalie stats', file: 'nhl_2324_goalies.csv' },
-      ],
-      chips: [
-        'Who led the league in goals?',
-        'Best plus/minus rating?',
-        'Compare forwards vs defensemen goals',
-        'Show goals vs ice time',
-      ]
-    },
-    soccer: {
-      label: 'Soccer',
-      datasets: [
-        { label: 'FIFA player ratings 2024', file: 'fifa_2024_players.csv' },
-        { label: 'Premier League 2023-24',   file: 'premier_league_2324.csv' },
-      ],
-      chips: [
-        'Top scorers this season?',
-        'Which country has the highest rated players?',
-        'Best passing accuracy?',
-        'Compare goalkeepers by clean sheets',
-      ]
-    },
-    football: {
-      label: 'Football',
-      datasets: [
-        { label: 'CFL 2023 player stats', file: 'cfl_2023_players.csv' },
-        { label: 'CFL team standings 2023', file: 'cfl_2023_teams.csv' },
-      ],
-      chips: [
-        'Top rushing yards 2023?',
-        'Best quarterback completion rate?',
-        'Most touchdowns by team?',
-        'Compare East vs West division stats',
-      ]
-    }
+const SPORTS={
+  basketball:{
+    chips:['Who scored the most points per game?','Which team had the best record?','Compare assists vs turnovers','Show points vs age'],
+    datasets:[
+      {label:'NBA 2024-25 players',    file:'NBA/player/nba_player_stats_2024-2025.csv'},
+      {label:'NBA 2023-24 players',    file:'NBA/player/nba_player_stats_2023-2024.csv'},
+      {label:'NBA all seasons',        file:'NBA/player/nba_player_stats_all.csv'},
+      {label:'NBA team stats 2024-25', file:'NBA/team/nba_team_stats_2024-2025.csv'},
+      {label:'NBA standings 2024-25',  file:'NBA/standings/nba_standings_2024-2025.csv'},
+      {label:'WNBA 2025 players',      file:'WNBA/player/wnba_player_stats_2025.csv'},
+      {label:'WNBA all seasons',       file:'WNBA/player/wnba_player_stats_all.csv'},
+      {label:'Demo: Hoops Data',       file:'demo/Hoops_Data.csv'},
+    ]
+  },
+  hockey:{
+    chips:['Who led the league in goals?','Best plus/minus rating?','Compare forwards vs defence goals','Goals vs games played'],
+    datasets:[
+      {label:'NHL 2025-26 players',    file:'NHL/player/nhl_player_stats_2025-2026.csv'},
+      {label:'NHL 2024-25 players',    file:'NHL/player/nhl_player_stats_2024-2025.csv'},
+      {label:'NHL 2023-24 players',    file:'NHL/player/nhl_player_stats_2023-2024.csv'},
+      {label:'NHL all seasons',        file:'NHL/player/nhl_player_stats_all.csv'},
+      {label:'NHL team stats 2025-26', file:'NHL/team/nhl_team_stats_2025-2026.csv'},
+      {label:'NHL standings 2025-26',  file:'NHL/standings/nhl_standings_2025-2026.csv'},
+      {label:'AHL 2025-26 players',    file:'AHL/player/ahl_player_stats_2025-2026.csv'},
+    ]
+  },
+  lacrosse:{
+    chips:['Top scorers this season?','Which team scored the most goals?','Goals vs assists leaders','Compare teams by points'],
+    datasets:[
+      {label:'NLL 2025-26 players',    file:'NLL/player/nll_player_stats_2025-2026.csv'},
+      {label:'NLL 2024-25 players',    file:'NLL/player/nll_player_stats_2024-2025.csv'},
+      {label:'NLL all seasons',        file:'NLL/player/nll_player_stats_all.csv'},
+      {label:'NLL team stats 2025-26', file:'NLL/team/nll_team_stats_2025-2026.csv'},
+    ]
+  },
+  soccer:{
+    chips:['Top scorers this season?','Best passing accuracy?','Which club scored most goals?','Goals vs assists comparison'],
+    datasets:[
+      {label:'EPL 2025-26 players',    file:'English_Premier_League/player/epl_player_stats_2025-2026.csv'},
+      {label:'EPL 2024-25 players',    file:'English_Premier_League/player/epl_player_stats_2024-2025.csv'},
+      {label:'EPL all seasons',        file:'English_Premier_League/player/epl_player_stats_all.csv'},
+      {label:'EPL standings 2025-26',  file:'English_Premier_League/standings/epl_standings_2025-2026.csv'},
+      {label:'MLS 2025-26 players',    file:'MLS/player/mls_player_stats_2025-2026.csv'},
+      {label:'MLS all seasons',        file:'MLS/player/mls_player_stats_all.csv'},
+    ]
+  },
+  baseball:{
+    chips:['Top home run hitters?','Best batting averages?','ERA leaders among pitchers','Strikeouts vs walks'],
+    datasets:[
+      {label:'MLB 2025 players',       file:'MLB/player/mlb_player_stats_2025.csv'},
+      {label:'MLB 2024 players',       file:'MLB/player/mlb_player_stats_2024.csv'},
+      {label:'MLB standings 2025',     file:'MLB/standings/mlb_standings_2025.csv'},
+      {label:'MLB team stats 2025',    file:'MLB/team/mlb_team_stats_2025.csv'},
+    ]
   }
 };
 
-/* ══════════════════════════════════════════════════
-   STATE
-═══════════════════════════════════════════════════ */
-let state = {
-  sport: 'basketball',
-  df: null,          // parsed CSV rows (array of objects)
-  columns: [],
-  filename: '',
-  apiKey: localStorage.getItem('dd_api_key') || '',
-  lastCode: '',
-  lastExplanation: [],
-  chart: null,
+const URL_KEY=new URLSearchParams(window.location.search).get('key')||'';
+let state={sport:'basketball',df:null,columns:[],filename:'',rowCount:0,apiKey:URL_KEY||localStorage.getItem('dd_api_key')||'',lastCode:'',lastExplanation:[],chart:null};
+
+window.onload=()=>{
+  if(URL_KEY) localStorage.setItem('dd_api_key',URL_KEY);
+  if(state.apiKey) document.getElementById('api-banner').style.display='none';
+  setSport(document.querySelector('.pill.active'),'basketball');
+  addBotMsg("Hi! I'm your data science coach. Choose a sport and dataset above, then ask me anything — I'll show the answer as a chart and explain the Python code that made it.");
 };
 
-/* ══════════════════════════════════════════════════
-   INIT
-═══════════════════════════════════════════════════ */
-window.onload = () => {
-  if (state.apiKey) document.getElementById('api-banner').style.display = 'none';
-  setSport(document.querySelector('.pill.active'), 'basketball');
-  addBotMsg("Hi! I'm your data science coach for Data Dunkers. Choose a sport and dataset above, then ask me anything — I'll answer in plain English, draw a chart, and show you the Python code that made it.");
-};
-
-/* ══════════════════════════════════════════════════
-   API KEY
-═══════════════════════════════════════════════════ */
-function saveKey() {
-  const key = document.getElementById('api-key-input').value.trim();
-  if (!key) return;
-  state.apiKey = key;
-  localStorage.setItem('dd_api_key', key);
-  document.getElementById('api-banner').style.display = 'none';
+function saveKey(){
+  const k=document.getElementById('api-key-input').value.trim();
+  if(!k) return;
+  state.apiKey=k; localStorage.setItem('dd_api_key',k);
+  document.getElementById('api-banner').style.display='none';
 }
 
-/* ══════════════════════════════════════════════════
-   SPORT / DATASET SWITCHING
-═══════════════════════════════════════════════════ */
-function setSport(el, sport) {
-  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
-  state.sport = sport;
-
-  const cfg = CONFIG.sports[sport];
-  const sel = document.getElementById('ds-select');
-  sel.innerHTML = cfg.datasets.map((d,i) => `<option value="${i}">${d.label}</option>`).join('');
-
-  const chips = document.getElementById('chips');
-  chips.innerHTML = cfg.chips.map(q =>
-    `<button class="chip" onclick="chipClick(this)">${q}</button>`
-  ).join('');
-
+function setSport(el,sport){
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active'); state.sport=sport;
+  const cfg=SPORTS[sport];
+  document.getElementById('ds-select').innerHTML=cfg.datasets.map((d,i)=>`<option value="${i}">${d.label}</option>`).join('');
+  document.getElementById('chips').innerHTML=cfg.chips.map(q=>`<button class="chip" onclick="chipClick(this)">${q}</button>`).join('');
   loadDataset();
 }
 
-function loadDataset() {
-  const sport = CONFIG.sports[state.sport];
-  const idx = document.getElementById('ds-select').value;
-  const ds = sport.datasets[idx];
-  if (!ds) return;
-  state.filename = ds.file;
-  const url = CONFIG.csvBase + ds.file;
-
-  addBotMsg(`Loading <strong>${ds.label}</strong>…`);
-
-  Papa.parse(url, {
-    download: true,
-    header: true,
-    skipEmptyLines: true,
-    complete: (results) => {
-      state.df = results.data;
-      state.columns = results.meta.fields || [];
-      const n = state.df.length;
-      const cols = state.columns.slice(0, 6).join(', ');
-      addBotMsg(`Loaded ${n} rows. Columns include: <em>${cols}${state.columns.length > 6 ? '…' : ''}</em>. What would you like to explore?`);
+function loadDataset(){
+  const sport=SPORTS[state.sport];
+  const idx=+document.getElementById('ds-select').value;
+  const ds=sport.datasets[idx]; if(!ds) return;
+  state.filename=ds.file;
+  addBotMsg(`Loading <em>${ds.label}</em>…`);
+  Papa.parse(BASE+ds.file,{
+    download:true,header:true,skipEmptyLines:true,
+    complete(r){
+      state.df=r.data; state.columns=r.meta.fields||[]; state.rowCount=r.data.length;
+      const preview=state.columns.slice(0,6).join(', ')+(state.columns.length>6?'…':'');
+      addBotMsg(`Loaded <strong>${r.data.length.toLocaleString()}</strong> rows. Columns: <em>${preview}</em>. What would you like to explore?`);
     },
-    error: () => {
-      // Fallback: use demo data so the UI still works without a real CSV
-      loadDemoData();
-    }
+    error(){ addBotMsg('Could not load that file. Check your internet connection or choose another dataset.'); }
   });
 }
 
-function loadDemoData() {
-  // Demo NBA data so the prototype works without a live CSV
-  const players = [
-    {Player:'Luka Doncic',Team:'DAL',PTS:33.9,AST:9.8,REB:9.2,Age:24},
-    {Player:'Shai Gilgeous-Alexander',Team:'OKC',PTS:30.1,AST:6.2,REB:5.5,Age:25},
-    {Player:'Giannis Antetokounmpo',Team:'MIL',PTS:30.4,AST:6.5,REB:11.5,Age:29},
-    {Player:'Jayson Tatum',Team:'BOS',PTS:26.9,AST:4.9,REB:8.1,Age:26},
-    {Player:'Anthony Edwards',Team:'MIN',PTS:25.9,AST:5.1,REB:5.4,Age:22},
-    {Player:'Devin Booker',Team:'PHX',PTS:27.1,AST:6.9,REB:4.5,Age:27},
-    {Player:'Kevin Durant',Team:'PHX',PTS:27.1,AST:5.0,REB:6.6,Age:35},
-    {Player:'Damian Lillard',Team:'MIL',PTS:24.0,AST:7.3,REB:4.4,Age:33},
-    {Player:'Stephen Curry',Team:'GSW',PTS:26.4,AST:5.1,REB:4.5,Age:35},
-    {Player:'LeBron James',Team:'LAL',PTS:25.7,AST:8.3,REB:7.3,Age:39},
-  ];
-  state.df = players;
-  state.columns = ['Player','Team','PTS','AST','REB','Age'];
-  state.filename = 'demo_nba.csv';
-  addBotMsg('Using demo NBA data (10 players). What would you like to explore?');
+function addBotMsg(html){const c=document.getElementById('chat');const e=document.createElement('div');e.className='msg bot';e.innerHTML=html;c.appendChild(e);c.scrollTop=c.scrollHeight;return e;}
+function addUserMsg(t){const c=document.getElementById('chat');const e=document.createElement('div');e.className='msg user';e.textContent=t;c.appendChild(e);c.scrollTop=c.scrollHeight;}
+function addThinking(){const c=document.getElementById('chat');const e=document.createElement('div');e.className='msg thinking';e.innerHTML='Thinking<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span>';c.appendChild(e);c.scrollTop=c.scrollHeight;return e;}
+function chipClick(el){document.getElementById('q-input').value=el.textContent;sendQ();}
+
+async function sendQ(){
+  const inp=document.getElementById('q-input');
+  const q=inp.value.trim(); if(!q) return;
+  if(!state.df||!state.df.length){addBotMsg('Please wait for the dataset to finish loading first.');return;}
+  inp.value=''; addUserMsg(q);
+  const thinking=addThinking();
+  document.getElementById('send-btn').disabled=true;
+  try{
+    const result=state.apiKey?await callLLM(q):await localFallback(q);
+    thinking.remove(); handleResult(result);
+  }catch(e){thinking.remove();addBotMsg(`<span style="color:#c00">Couldn't get an answer: ${esc(e.message)}</span>`);}
+  finally{document.getElementById('send-btn').disabled=false;}
 }
 
-/* ══════════════════════════════════════════════════
-   CHAT HELPERS
-═══════════════════════════════════════════════════ */
-function addBotMsg(html) {
-  const chat = document.getElementById('chat');
-  const el = document.createElement('div');
-  el.className = 'msg bot';
-  el.innerHTML = html;
-  chat.appendChild(el);
-  chat.scrollTop = chat.scrollHeight;
-  return el;
-}
+async function callLLM(question){
+  const sample=state.df.slice(0,3);
+  const sys=`You are a data science coach for the Data Dunkers program, helping students aged 10-16 learn data science through sports.
 
-function addUserMsg(text) {
-  const chat = document.getElementById('chat');
-  const el = document.createElement('div');
-  el.className = 'msg user';
-  el.textContent = text;
-  chat.appendChild(el);
-  chat.scrollTop = chat.scrollHeight;
-}
+Dataset:
+- File: ${state.filename}
+- Columns: ${state.columns.join(', ')}
+- Rows: ${state.rowCount}
+- Sample rows: ${JSON.stringify(sample)}
 
-function addThinking() {
-  const chat = document.getElementById('chat');
-  const el = document.createElement('div');
-  el.className = 'msg thinking';
-  el.innerHTML = 'Thinking<span class="thinking-dots"><span>.</span><span>.</span><span>.</span></span>';
-  chat.appendChild(el);
-  chat.scrollTop = chat.scrollHeight;
-  return el;
-}
-
-function chipClick(el) {
-  document.getElementById('q-input').value = el.textContent;
-  sendQ();
-}
-
-/* ══════════════════════════════════════════════════
-   SEND QUESTION
-═══════════════════════════════════════════════════ */
-async function sendQ() {
-  const input = document.getElementById('q-input');
-  const question = input.value.trim();
-  if (!question) return;
-  if (!state.df || state.df.length === 0) {
-    addBotMsg('Please wait for the dataset to finish loading first.');
-    return;
-  }
-
-  input.value = '';
-  addUserMsg(question);
-
-  const thinking = addThinking();
-  document.getElementById('send-btn').disabled = true;
-
-  try {
-    let result;
-    if (state.apiKey) {
-      result = await callLLM(question);
-    } else {
-      result = await localFallback(question);
-    }
-
-    thinking.remove();
-    handleResult(result, question);
-  } catch(e) {
-    thinking.remove();
-    addBotMsg(`<span style="color:#c00">Couldn't get an answer: ${e.message}. Check your API key or try a different question.</span>`);
-  } finally {
-    document.getElementById('send-btn').disabled = false;
-  }
-}
-
-/* ══════════════════════════════════════════════════
-   LLM CALL
-═══════════════════════════════════════════════════ */
-async function callLLM(question) {
-  const sample = state.df.slice(0, 3);
-  const colInfo = state.columns.join(', ');
-
-  const systemPrompt = `You are a data science coach for the Data Dunkers program, helping students aged 10-16 learn data science through sports.
-
-The student has loaded this dataset:
-- Filename: ${state.filename}
-- Columns: ${colInfo}
-- Total rows: ${state.df.length}
-- Sample rows (first 3): ${JSON.stringify(sample)}
-
-When the student asks a question, respond ONLY with a valid JSON object — no markdown, no explanation outside the JSON — with exactly these fields:
+Respond ONLY with a valid JSON object — no markdown fences, no text outside the JSON:
 {
-  "answer": "1-3 sentence plain English answer for a 12-year-old. Use specific numbers and names from the data. Be enthusiastic.",
-  "stats": [
-    {"label": "short label", "value": "number or text", "sub": "optional context"}
-  ],
-  "code": ["line1", "line2", "...up to 8 lines of pandas code. df is already loaded. Do NOT include imports or pd.read_csv. Last line must assign to fig using plotly.express as px."],
-  "explanation": [
-    {"line": "exact code line", "comment": "plain English explanation for a beginner"}
-  ],
-  "chart_type": "bar|barh|line|scatter|pie",
-  "chart_data": {
-    "labels": ["label1","label2",...],
-    "values": [num1,num2,...],
-    "x_label": "axis label",
-    "y_label": "axis label"
-  }
+  "answer": "1-3 sentence plain English answer for a 12-year-old. Use real numbers and names from the data. Be enthusiastic.",
+  "stats": [{"label":"short label","value":"number or short text","sub":"optional context"}],
+  "code": ["line1","line2"],
+  "explanation": [{"line":"exact code line","comment":"plain English explanation for a beginner"}],
+  "chart_type": "bar|barh|line|scatter",
+  "chart_data": {"labels":["..."],"values":[0],"x_label":"","y_label":""}
 }
 
 Code rules:
-- Only use pandas operations on df
-- Column names must exactly match: ${colInfo}
-- chart_data must contain the actual data to display (pull from the sample or estimate from column names)
-- If question can't be answered from this dataset, set code to null and explain in answer
-- Keep answer encouraging and age-appropriate`;
+- df is already loaded as a pandas DataFrame. Do NOT include imports or pd.read_csv.
+- Column names must exactly match: ${state.columns.join(', ')}
+- The last line must assign to a variable called fig using plotly.express as px
+- Max 8 lines. If the question can't be answered from this data, set code to null.`;
 
-  const response = await fetch(CONFIG.apiEndpoint, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${state.apiKey}`
-    },
-    body: JSON.stringify({
-      model: CONFIG.apiModel,
-      max_tokens: 1000,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: question }
-      ]
-    })
-  });
-
-  if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(err.error?.message || `API error ${response.status}`);
-  }
-
-  const data = await response.json();
-  const raw = data.choices?.[0]?.message?.content || '{}';
-
-  // Strip markdown fences if present
-  const cleaned = raw.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
-  try {
-    return JSON.parse(cleaned);
-  } catch {
-    throw new Error('Could not parse AI response. Try rephrasing your question.');
-  }
+  const r=await fetch(API_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${state.apiKey}`},body:JSON.stringify({model:API_MODEL,max_tokens:1000,messages:[{role:'system',content:sys},{role:'user',content:question}]})});
+  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error?.message||`API error ${r.status}`);}
+  const data=await r.json();
+  const raw=data.choices?.[0]?.message?.content||'{}';
+  try{return JSON.parse(raw.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim());}
+  catch{throw new Error('Could not parse AI response. Try rephrasing your question.');}
 }
 
-/* ══════════════════════════════════════════════════
-   LOCAL FALLBACK (no API key)
-   — simple rule-based answers using actual data
-═══════════════════════════════════════════════════ */
-async function localFallback(question) {
-  const q = question.toLowerCase();
-  const df = state.df;
-  const cols = state.columns;
+async function localFallback(question){
+  const df=state.df,cols=state.columns,q=question.toLowerCase();
+  const numCols=cols.filter(c=>df[0]&&df[0][c]!==''&&!isNaN(parseFloat(df[0][c])));
+  const labelCol=cols.find(c=>/player|name|team|club|skater/i.test(c))||cols[0];
+  const kw=[
+    {re:/goal|gol/i,c:['G','Goals','goals','Gls']},
+    {re:/assist/i,c:['A','Assists','assists','Ast']},
+    {re:/point|pts|ppg/i,c:['PTS','P','Points','Pts']},
+    {re:/win/i,c:['W','Wins','wins']},
+    {re:/era/i,c:['ERA']},
+    {re:/hr|home.?run/i,c:['HR']},
+    {re:/avg|batting/i,c:['AVG','BA']},
+    {re:/plus.?minus/i,c:['+/-','PM']},
+    {re:/age/i,c:['Age','age']},
+  ];
+  let sortCol=null;
+  for(const {re,c} of kw){if(re.test(q)){sortCol=c.find(x=>numCols.includes(x));if(sortCol)break;}}
+  if(!sortCol)sortCol=numCols[0];
+  if(!sortCol)return{answer:'I can see the data but need a numeric column to chart. Try asking about a specific stat!',stats:[],code:null,explanation:[],chart_type:'bar',chart_data:{labels:[],values:[],x_label:'',y_label:''}};
 
-  // Find a numeric column to sort by
-  const numCols = cols.filter(c => !isNaN(parseFloat(df[0]?.[c])));
-  const scoreCols = numCols.filter(c => /pts|goals|score|points|gols|tds|ppg/i.test(c));
-  const sortCol = scoreCols[0] || numCols[0];
-  const labelCol = cols.find(c => /player|name|team|club/i.test(c)) || cols[0];
-
-  if (!sortCol) {
-    return { answer: "I can see the data but need a numeric column to chart. Try asking about a specific stat!", stats:[], code:null, explanation:[], chart_type:'bar', chart_data:{labels:[],values:[]} };
-  }
-
-  const sorted = [...df]
-    .map(r => ({ label: r[labelCol], val: parseFloat(r[sortCol]) || 0 }))
-    .sort((a,b) => b.val - a.val)
-    .slice(0, 8);
-
-  const top = sorted[0];
-  return {
-    answer: `${top.label} leads with ${top.val} ${sortCol}. (Tip: add an API key above for full AI-powered answers and explanations!)`,
-    stats: [
-      { label: 'Leader', value: top.label, sub: '' },
-      { label: sortCol, value: top.val.toFixed(1), sub: 'top value' },
-      { label: 'Rows', value: df.length, sub: 'in dataset' }
-    ],
-    code: [
-      `top8 = df.sort_values("${sortCol}", ascending=False).head(8)`,
-      `fig = px.bar(top8, x="${labelCol}", y="${sortCol}", title="Top 8 by ${sortCol}")`
-    ],
-    explanation: [
-      { line: `top8 = df.sort_values("${sortCol}", ascending=False).head(8)`, comment: `Sort the data by ${sortCol} from highest to lowest, then keep only the top 8 rows` },
-      { line: `fig = px.bar(top8, x="${labelCol}", y="${sortCol}", title="Top 8 by ${sortCol}")`, comment: 'Draw a bar chart with player/team names on the x-axis and the stat on the y-axis' }
-    ],
-    chart_type: 'barh',
-    chart_data: {
-      labels: sorted.map(r => r.label),
-      values: sorted.map(r => r.val),
-      x_label: labelCol,
-      y_label: sortCol
-    }
+  const sorted=[...df].map(r=>({label:String(r[labelCol]||'').slice(0,22),val:parseFloat(r[sortCol])||0})).filter(r=>r.val!==0).sort((a,b)=>b.val-a.val).slice(0,10);
+  const top=sorted[0]||{label:'N/A',val:0};
+  return{
+    answer:`${top.label} leads with ${typeof top.val==='number'&&top.val%1!==0?top.val.toFixed(1):top.val} ${sortCol}. (Add a free Groq API key above for full AI-powered answers and code explanations!)`,
+    stats:[{label:'Leader',value:top.label,sub:''},{label:sortCol,value:top.val%1===0?top.val:top.val.toFixed(1),sub:'top value'},{label:'Rows',value:df.length.toLocaleString(),sub:'in dataset'}],
+    code:[`top10 = df.sort_values("${sortCol}", ascending=False).head(10)`,`fig = px.bar(top10, x="${labelCol}", y="${sortCol}", title="Top 10 by ${sortCol}")`],
+    explanation:[{line:`top10 = df.sort_values("${sortCol}", ascending=False).head(10)`,comment:`Sort all players/teams by ${sortCol} from highest to lowest, keep the top 10`},{line:`fig = px.bar(top10, x="${labelCol}", y="${sortCol}", title="Top 10 by ${sortCol}")`,comment:'Draw a bar chart comparing those top 10'}],
+    chart_type:'barh',
+    chart_data:{labels:sorted.map(r=>r.label),values:sorted.map(r=>r.val),x_label:labelCol,y_label:sortCol}
   };
 }
 
-/* ══════════════════════════════════════════════════
-   HANDLE RESULT
-═══════════════════════════════════════════════════ */
-function handleResult(result, question) {
-  // Answer
-  addBotMsg(result.answer || 'Here are the results!');
-
-  // Stats bar
-  if (result.stats && result.stats.length > 0) {
-    const bar = document.getElementById('stats-bar');
-    bar.style.display = 'flex';
-    bar.innerHTML = result.stats.map(s => `
-      <div class="stat">
-        <div class="stat-label">${s.label}</div>
-        <div class="stat-val">${s.value}</div>
-        ${s.sub ? `<div class="stat-sub">${s.sub}</div>` : ''}
-      </div>
-    `).join('');
-  }
-
-  // Chart
-  if (result.chart_data && result.chart_data.labels && result.chart_data.labels.length > 0) {
-    renderChart(result.chart_data, result.chart_type || 'bar');
-  }
-
-  // Code panel
-  if (result.code && result.explanation) {
-    state.lastCode = Array.isArray(result.code) ? result.code.join('\n') : result.code;
-    state.lastExplanation = result.explanation || [];
-    showCodePanel(result.explanation);
-  }
+function handleResult(r){
+  addBotMsg(r.answer||'Here are the results!');
+  if(r.stats&&r.stats.length){const bar=document.getElementById('stats-bar');bar.style.display='flex';bar.innerHTML=r.stats.map(s=>`<div class="stat"><div class="stat-label">${esc(s.label)}</div><div class="stat-val">${esc(String(s.value))}</div>${s.sub?`<div class="stat-sub">${esc(s.sub)}</div>`:''}</div>`).join('');}
+  if(r.chart_data&&r.chart_data.labels&&r.chart_data.labels.length)renderChart(r.chart_data,r.chart_type||'bar');
+  if(r.code&&r.explanation){state.lastCode=Array.isArray(r.code)?r.code.join('\n'):r.code;state.lastExplanation=r.explanation||[];showCodePanel(r.explanation);}
 }
 
-/* ══════════════════════════════════════════════════
-   CHART RENDERING
-═══════════════════════════════════════════════════ */
-function renderChart(data, type) {
-  document.getElementById('chart-placeholder').style.display = 'none';
-  document.getElementById('chart-container').style.display = 'block';
-
-  if (state.chart) { state.chart.destroy(); state.chart = null; }
-
-  const colors = data.labels.map((_, i) =>
-    i === 0 ? '#1a9e6e' : `hsl(${160 + i * 22}, 45%, 55%)`
-  );
-
-  const isHorizontal = type === 'barh';
-  const chartType = (type === 'barh' || type === 'bar') ? 'bar' : type;
-
-  state.chart = new Chart(document.getElementById('myChart'), {
-    type: chartType,
-    data: {
-      labels: data.labels,
-      datasets: [{
-        label: data.y_label || 'Value',
-        data: data.values,
-        backgroundColor: colors,
-        borderRadius: 4,
-        borderSkipped: false,
-        pointRadius: 5,
-        pointBackgroundColor: '#1a9e6e',
-      }]
-    },
-    options: {
-      indexAxis: isHorizontal ? 'y' : 'x',
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => ` ${ctx.parsed[isHorizontal?'x':'y'].toFixed(1)}`
-          }
-        }
-      },
-      scales: chartType === 'pie' ? {} : {
-        x: {
-          grid: { color: 'rgba(0,0,0,0.04)' },
-          ticks: { font: { size: 11, family: "'DM Sans', sans-serif" }, maxRotation: 30 }
-        },
-        y: {
-          grid: { color: 'rgba(0,0,0,0.04)' },
-          ticks: { font: { size: 11, family: "'DM Sans', sans-serif" } }
-        }
-      }
-    }
+function renderChart(data,type){
+  document.getElementById('chart-placeholder').style.display='none';
+  document.getElementById('chart-container').style.display='block';
+  document.getElementById('export-strip').style.display='flex';
+  if(state.chart){state.chart.destroy();state.chart=null;}
+  const colors=data.labels.map((_,i)=>i===0?'#1a9e6e':`hsl(${160+i*22},45%,55%)`);
+  const isH=type==='barh',cType=(type==='barh'||type==='bar')?'bar':type;
+  state.chart=new Chart(document.getElementById('myChart'),{
+    type:cType,
+    data:{labels:data.labels,datasets:[{label:data.y_label||'Value',data:data.values,backgroundColor:colors,borderRadius:4,borderSkipped:false,pointRadius:5,pointBackgroundColor:'#1a9e6e'}]},
+    options:{indexAxis:isH?'y':'x',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.parsed[isH?'x':'y'];return ` ${typeof v==='number'&&v%1!==0?v.toFixed(1):v}`;}}}},
+      scales:cType==='pie'?{}:{x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:11,family:"'DM Sans',sans-serif"},maxRotation:30}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:11,family:"'DM Sans',sans-serif"}}}}}
   });
 }
 
-/* ══════════════════════════════════════════════════
-   CODE PANEL
-═══════════════════════════════════════════════════ */
-function showCodePanel(explanation) {
-  document.getElementById('code-panel').style.display = 'block';
-  const lines = document.getElementById('code-lines');
-  lines.innerHTML = explanation.map(e => `
-    <div class="code-line">
-      <div class="code-text">${escHtml(e.line)}</div>
-      <div class="code-comment">← ${escHtml(e.comment)}</div>
-    </div>
-  `).join('');
+function showCodePanel(explanation){
+  document.getElementById('code-panel').style.display='block';
+  document.getElementById('code-lines').innerHTML=explanation.map(e=>`<div class="code-line"><div class="code-text">${esc(e.line)}</div><div class="code-comment">← ${esc(e.comment)}</div></div>`).join('');
 }
+function toggleCode(){document.getElementById('code-body').classList.toggle('open');document.getElementById('code-toggle').classList.toggle('open');}
 
-function toggleCode() {
-  const body = document.getElementById('code-body');
-  const toggle = document.getElementById('code-toggle');
-  body.classList.toggle('open');
-  toggle.classList.toggle('open');
+function buildNotebook(){
+  const src=`import pandas as pd\nimport plotly.express as px\n\n# Load the dataset from Data Dunkers GitHub repo\ndf = pd.read_csv("${BASE}${state.filename}")\n\n# Generated analysis\n${state.lastCode}`;
+  return JSON.stringify({nbformat:4,nbformat_minor:5,metadata:{kernelspec:{display_name:'Python 3',language:'python',name:'python3'}},cells:[{cell_type:'markdown',metadata:{},source:['# Data Dunkers\nGenerated by the Data Dunkers chatbot.\n'],outputs:[]},{cell_type:'code',metadata:{},source:[src],outputs:[],execution_count:null}]},null,2);
 }
-
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function downloadNotebook(){
+  if(!state.lastCode){addBotMsg('Ask a question first to generate some code!');return;}
+  const blob=new Blob([buildNotebook()],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='data_dunkers.ipynb';a.click();
+  addBotMsg('Notebook downloaded! Open it in JupyterLite, drag it into Google Colab, or upload it to hub.callysto.ca.');
 }
-
-/* ══════════════════════════════════════════════════
-   EXPORT: GOOGLE COLAB
-═══════════════════════════════════════════════════ */
-function openColab() {
-  if (!state.lastCode) return;
-  const preamble = [
-    '# Data Dunkers — generated notebook',
-    '# Run each cell by pressing Shift+Enter\n',
-    'import pandas as pd',
-    'import plotly.express as px\n',
-    `# Load the dataset`,
-    `df = pd.read_csv("${CONFIG.csvBase}${state.filename}")\n`,
-    '# Your analysis',
-    state.lastCode
-  ].join('\n');
-
-  const nb = {
-    nbformat: 4, nbformat_minor: 5,
-    metadata: { kernelspec: { display_name: 'Python 3', language: 'python', name: 'python3' } },
-    cells: [
-      { cell_type:'markdown', metadata:{}, source:['# Data Dunkers\nGenerated by the Data Dunkers chatbot.\n'], outputs:[] },
-      { cell_type:'code', metadata:{}, source:[preamble], outputs:[], execution_count:null }
-    ]
-  };
-
-  const json = JSON.stringify(nb);
-  const b64 = btoa(unescape(encodeURIComponent(json)));
-  // Colab can open notebooks encoded in the URL
-  const url = `https://colab.research.google.com/notebook#create=true&language=python3`;
-  // Fallback: download the .ipynb
-  downloadNotebook(json, 'data_dunkers.ipynb');
+function copyCode(){
+  if(!state.lastCode){addBotMsg('Ask a question first!');return;}
+  const full=`import pandas as pd\nimport plotly.express as px\n\ndf = pd.read_csv("${BASE}${state.filename}")\n\n${state.lastCode}`;
+  navigator.clipboard.writeText(full).then(()=>{const b=document.getElementById('copy-btn');b.textContent='Copied!';setTimeout(()=>b.textContent='Copy Python code',1500);});
 }
-
-/* ══════════════════════════════════════════════════
-   EXPORT: JUPYTERHUB
-═══════════════════════════════════════════════════ */
-function openJupyterHub() {
-  if (!state.lastCode) return;
-  const preamble = [
-    'import pandas as pd\nimport plotly.express as px\n',
-    `df = pd.read_csv("${CONFIG.csvBase}${state.filename}")\n`,
-    state.lastCode
-  ].join('\n');
-
-  const nb = {
-    nbformat: 4, nbformat_minor: 5,
-    metadata: { kernelspec: { display_name:'Python 3', language:'python', name:'python3' } },
-    cells: [
-      { cell_type:'markdown', metadata:{}, source:['# Data Dunkers\n'], outputs:[] },
-      { cell_type:'code', metadata:{}, source:[preamble], outputs:[], execution_count:null }
-    ]
-  };
-
-  const json = JSON.stringify(nb);
-  const fname = `data_dunkers_${Date.now()}.ipynb`;
-
-  // POST to JupyterHub Contents API
-  const hubUrl = CONFIG.jupyterHubUrl;
-  fetch(`${hubUrl}/api/contents/${fname}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type:'notebook', content: JSON.parse(json) })
-  })
-  .then(r => {
-    if (r.ok) window.open(`${hubUrl}/lab/tree/${fname}`, '_blank');
-    else throw new Error('Hub upload failed');
-  })
-  .catch(() => {
-    // Fallback: download file
-    downloadNotebook(json, fname);
-    addBotMsg("Couldn't reach JupyterHub — downloaded the notebook instead. Update CONFIG.jupyterHubUrl in the source.");
-  });
-}
-
-function downloadNotebook(json, filename) {
-  const blob = new Blob([json], { type:'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  a.click();
-}
-
-function copyCode() {
-  if (!state.lastCode) return;
-  const full = `import pandas as pd\nimport plotly.express as px\n\ndf = pd.read_csv("${CONFIG.csvBase}${state.filename}")\n\n${state.lastCode}`;
-  navigator.clipboard.writeText(full).then(() => {
-    const btn = event.target;
-    btn.textContent = 'Copied!';
-    setTimeout(() => btn.textContent = 'Copy code', 1500);
-  });
-}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 </script>
 </body>
 </html>
