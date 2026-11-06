@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="generator" content="RSD 5.0.3490" />
+    <title>Visualisations Data Dunkers — Interpréter les diagrammes à bandes</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        margin-left: 2%;
+        margin-right: 2%;
+      }
+    </style>
+  </head>
+
+  <body>
+    <img
+      src="https://github.com/Data-Dunkers/lessons/blob/main/images/top-banner.jpg?raw=true"
+      alt="Bannière Data Dunkers"
+      style="width: 50%; height: auto; display: block; margin: 0 auto"
+    />
+    <h2>Interpréter les diagrammes à bandes</h2>
+    <p class="paragraph">
+      Les diagrammes à bandes permettent de comparer différentes catégories de données. Dans cette activité, nous comparons deux joueurs de la NBA qui ont des moyennes de points semblables, mais des styles de jeu différents : Pascal Siakam et Stephen Curry.
+    </p>
+
+    <div id="visualization-container">
+      <iframe
+        title="Comparaison des statistiques de Pascal Siakam et de Stephen Curry"
+        src="visualizations/comparaison-des-joueurs-diagramme-a-bandes.html"
+        style="width: 100%; height: 500px; border: none"
+      ></iframe>
+    </div>
+
+    <p class="paragraph">
+      Survole les bandes pour voir les valeurs exactes des statistiques. Clique sur les éléments de la légende pour masquer ou afficher les statistiques correspondantes.
+    </p>
+
+    <footer>
+      <h3>Questions</h3>
+      <p class="questions" id="questions"></p>
+      <p style="text-align: center">
+        <button
+          onclick="copyAnswers()"
+          style="padding: 10px 20px; margin-top: 10px"
+        >
+          Copier les réponses
+        </button>
+      </p>
+      <p id="gitpullParagraph"></p>
+      <p style="text-align: center"><a href="index.html">Accueil</a></p>
+      <img
+        src="https://github.com/Data-Dunkers/lessons/blob/main/images/bottom-banner.jpg?raw=true"
+        alt="Bannière de bas de page Data Dunkers"
+        style="width: 50%; height: auto; display: block; margin: 0 auto"
+      />
+    </footer>
+
+    <script>
+      const questions = [
+        "Quelle statistique montre le plus grand écart entre les deux joueurs ?",
+        "En comparant les pourcentages de tirs réussis, quel joueur semble le plus efficace au tir ?",
+        "Comment cette visualisation t’aide-t-elle à raconter une histoire plus claire qu’en examinant seulement les données brutes ?",
+      ];
+      const githubUrl =
+        "https://github.com/Data-Dunkers/student/blob/main/activities/interpreter-les-diagrammes-a-bandes.ipynb";
+
+      function gitpullLinks(githubUrl) {
+        var colabUrl =
+          "https://colab.research.google.com/github/" +
+          githubUrl.split("github.com/")[1];
+        var res = githubUrl.split("/");
+        var site = res[2];
+        var user = res[3];
+        var repo = res[4];
+        var treeBlob = res[5];
+        var branch = res[6];
+        var callystoUrl =
+          "https://hub.callysto.ca/jupyter/hub/user-redirect/git-pull?repo=";
+        if (site == "github.com") {
+          if (treeBlob) {
+            var subPath = githubUrl.substring(
+              githubUrl.indexOf(branch) + branch.length + 1,
+            );
+            callystoUrl +=
+              encodeURIComponent("https://github.com/" + user + "/") +
+              repo +
+              "&branch=" +
+              branch +
+              "&subPath=" +
+              subPath +
+              "&depth=1";
+          } else {
+            callystoUrl += githubUrl;
+          }
+        }
+        var parag = `<p>Consulte le <a href="${githubUrl}">notebook</a> qui a servi à créer cette visualisation dans <a href="${colabUrl}">Colab</a> ou sur <a href="${callystoUrl}">Callysto Hub</a>.</p>`;
+        return parag;
+      }
+
+      // insert the gitpull links
+      try {
+        document.getElementById("gitpullParagraph").innerHTML =
+          gitpullLinks(githubUrl);
+      } catch (error) {
+        console.error("Erreur :", error);
+      }
+
+      // add the questions
+      questions.forEach((question, index) => {
+        const questionHTML = `<label for="question${index + 1}">${index + 1}. ${question}</label><br>
+                          <input type="text" style="width:80%; padding:5px; margin:10px 0;" id="question${index + 1}"><br>`;
+        document
+          .getElementById("questions")
+          .insertAdjacentHTML("beforeend", questionHTML);
+      });
+
+      const fileName = window.location.pathname.split("/").pop().split(".")[0];
+
+      const savedAnswers = JSON.parse(
+        localStorage.getItem(fileName + "Answers"),
+      );
+      if (savedAnswers) {
+        questions.forEach((_, index) => {
+          const input = document.getElementById(`question${index + 1}`);
+          if (input && savedAnswers[`question${index + 1}`]) {
+            input.value = savedAnswers[`question${index + 1}`];
+          }
+        });
+      }
+
+      function saveAnswers() {
+        const answers = {};
+        questions.forEach((_, index) => {
+          answers[`question${index + 1}`] = document.getElementById(
+            `question${index + 1}`,
+          ).value;
+        });
+        localStorage.setItem(fileName + "Answers", JSON.stringify(answers));
+        console.log("Réponses enregistrées.");
+      }
+
+      function debounce(fn, delay) {
+        let timerId;
+        return (...args) => {
+          clearTimeout(timerId);
+          timerId = setTimeout(() => fn(...args), delay);
+        };
+      }
+
+      const saveAnswersDebounced = debounce(saveAnswers, 200);
+      document
+        .getElementById("questions")
+        .addEventListener("input", (event) => {
+          if (event.target.matches('input[type="text"]')) {
+            saveAnswersDebounced();
+          }
+        });
+
+      function copyAnswers() {
+        const answerText = questions
+          .map((questionText, index) => {
+            const answer = document.getElementById(
+              `question${index + 1}`,
+            ).value;
+            return `${index + 1}. ${questionText}\nRéponse : ${answer}\n`;
+          })
+          .join("\n");
+
+        navigator.clipboard.writeText(answerText).then(
+          () => {
+            alert("Les réponses ont été copiées dans le presse-papiers.");
+          },
+          () => {
+            alert("Impossible de copier les réponses.");
+          },
+        );
+      }
+    </script>
+  </body>
+</html>

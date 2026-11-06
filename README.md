@@ -36,6 +36,7 @@ Activities are grouped into three categories:
 These activities focus on reading and making meaning from existing graphs and charts. Minimal coding is required.
 
 - [Interpreting Bar Graphs](activities/interpreting-bar-graphs.ipynb)
+- [Interpréter les diagrammes à bandes (français)](activities/interpreter-les-diagrammes-a-bandes.ipynb)
 - [Interpreting Line Graphs](activities/interpreting-line-graphs.ipynb)
 - [Interpreting Pie Charts](activities/interpreting-pie-charts.ipynb)
 - [Interpreting Scatterplots](activities/interpreting-scatterplots.ipynb)
