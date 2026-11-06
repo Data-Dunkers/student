@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="generator" content="RSD 5.0.3490">
+  <title>Visualisations Data Dunkers — Interpréter les nuages de points</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin-left: 2%;
+      margin-right: 2%;
+    }
+  </style>
+</head>
+
+<body>
+  <img src="https://github.com/Data-Dunkers/lessons/blob/main/images/top-banner.jpg?raw=true" alt="Bannière Data Dunkers"
+    style="width:50%; height:auto; display:block; margin:0 auto;">
+  <h2>Interpréter les nuages de points</h2>
+  <p class="paragraph">Les <a href="https://fr.wikipedia.org/wiki/Nuage_de_points">nuages de points</a> servent à représenter la relation entre deux variables. Nous utiliserons un jeu de données sur les statistiques des joueurs de la NBA pour la saison 2024-2025 afin de voir s’il existe une relation entre le nombre de points qu’un joueur marque et son efficacité au tir.</p>
+  <p class="paragraph">Nous comparons PTS (points par match) et FG% (pourcentage de tirs réussis).</p>
+  <p class="paragraph">La visualisation comprend une <b>droite de tendance</b> (ou un <b>ajustement linéaire</b>) pour nous aider à voir la direction générale de la relation.</p>
+
+  <div id="visualization-container">
+    <iframe title="Nuage de points : pourcentage de tirs réussis et points par match" src="visualizations/pourcentage-de-tirs-reussis-et-points.html"
+      style="width:100%; height:800px; border:none;"></iframe>
+  </div>
+
+  <p class="paragraph">Survole les points pour voir les noms et les statistiques des joueurs. Repère des joueurs qui
+    <b>se démarquent</b> des autres (<a href="https://fr.wikipedia.org/wiki/Donn%C3%A9e_aberrante">valeurs aberrantes</a>). Cherche des joueurs qui se situent bien au-dessus ou en dessous de la droite de tendance.
+  </p>
+  
+  <footer>
+    <h3>Questions</h3>
+    <p class="questions" id="questions"></p>
+    <p style="text-align: center;"><button onclick="copyAnswers()" style="padding:10px 20px; margin-top:10px;">Copier les réponses</button></p>
+    <p id="gitpullParagraph"></p>
+    <p style="text-align:center;"><a href="index.html">Accueil</a></p>
+    <img src="https://github.com/Data-Dunkers/lessons/blob/main/images/bottom-banner.jpg?raw=true"
+      alt="Bannière de bas de page Data Dunkers" style="width:50%; height:auto; display:block; margin:0 auto;">
+  </footer>
+
+  <script>
+    const questions = [
+      "Nomme un joueur qui se démarque comme une valeur aberrante (loin de la droite de tendance).",
+      "Selon la droite de tendance, la relation entre les points et le pourcentage de tirs réussis (FG%) semble-t-elle positive ou négative ?",
+      "Si un joueur est une valeur aberrante AU-DESSUS de la droite de tendance, qu’est-ce que cela indique sur son efficacité au tir ?"
+    ];
+
+    const githubUrl = "https://github.com/Data-Dunkers/student/blob/main/activities/interpreter-les-nuages-de-points.ipynb";
+
+    function gitpullLinks(githubUrl) {
+      var colabUrl = "https://colab.research.google.com/github/" + githubUrl.split("github.com/")[1];
+      var res = githubUrl.split("/");
+      var site = res[2];
+      var user = res[3];
+      var repo = res[4];
+      var treeBlob = res[5];
+      var branch = res[6];
+      var callystoUrl = "https://hub.callysto.ca/jupyter/hub/user-redirect/git-pull?repo=";
+      if (site == "github.com") {
+        if (treeBlob) {
+          var subPath = githubUrl.substring(githubUrl.indexOf(branch) + branch.length + 1);
+          callystoUrl += encodeURIComponent("https://github.com/" + user + "/") + repo + "&branch=" + branch + "&subPath=" + subPath + "&depth=1";
+        } else {
+          callystoUrl += githubUrl;
+        }
+      }
+      var parag = `<p>Consulte le <a href="${githubUrl}">notebook</a> qui a servi à créer cette visualisation dans <a href="${colabUrl}">Colab</a> ou sur <a href="${callystoUrl}">Callysto Hub</a>.</p>`;
+      return parag;
+    }
+
+    // insert the gitpull links
+    try {
+      document.getElementById('gitpullParagraph').innerHTML = gitpullLinks(githubUrl);
+    } catch (error) {
+      console.error('Erreur :', error);
+    }
+
+    // add the questions
+    questions.forEach((question, index) => {
+      const questionHTML = `<label for="question${index + 1}">${index + 1}. ${question}</label><br>
+                          <input type="text" style="width:80%; padding:5px; margin:10px 0;" id="question${index + 1}"><br>`;
+      document.getElementById('questions').insertAdjacentHTML('beforeend', questionHTML);
+    });
+
+    const fileName = window.location.pathname.split('/').pop().split('.')[0];
+
+    const savedAnswers = JSON.parse(localStorage.getItem(fileName + 'Answers'));
+    if (savedAnswers) {
+      questions.forEach((_, index) => {
+        const input = document.getElementById(`question${index + 1}`);
+        if (input && savedAnswers[`question${index + 1}`]) {
+          input.value = savedAnswers[`question${index + 1}`];
+        }
+      });
+    }
+
+    function saveAnswers() {
+      const answers = {};
+      questions.forEach((_, index) => {
+        answers[`question${index + 1}`] = document.getElementById(`question${index + 1}`).value;
+      });
+      localStorage.setItem(fileName + 'Answers', JSON.stringify(answers));
+      console.log('Réponses enregistrées.');
+    }
+
+    function debounce(fn, delay) {
+      let timerId;
+      return (...args) => {
+        clearTimeout(timerId);
+        timerId = setTimeout(() => fn(...args), delay);
+      };
+    }
+
+    const saveAnswersDebounced = debounce(saveAnswers, 200);
+    document.getElementById('questions').addEventListener('input', (event) => {
+      if (event.target.matches('input[type="text"]')) {
+        saveAnswersDebounced();
+      }
+    });
+
+    function copyAnswers() {
+      const answerText = questions.map((questionText, index) => {
+        const answer = document.getElementById(`question${index + 1}`).value;
+        return `${index + 1}. ${questionText}\nRéponse : ${answer}\n`;
+      }).join('\n');
+
+      navigator.clipboard.writeText(answerText).then(() => {
+        alert('Les réponses ont été copiées dans le presse-papiers.');
+      }, () => {
+        alert('Impossible de copier les réponses.');
+      });
+    }
+
+
+  </script>
+</body>
+
+</html>

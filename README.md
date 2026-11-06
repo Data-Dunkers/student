@@ -39,6 +39,7 @@ These activities focus on reading and making meaning from existing graphs and ch
 - [Interpreting Line Graphs](activities/interpreting-line-graphs.ipynb)
 - [Interpreting Pie Charts](activities/interpreting-pie-charts.ipynb)
 - [Interpreting Scatterplots](activities/interpreting-scatterplots.ipynb)
+- [Interpréter les nuages de points (français)](activities/interpreter-les-nuages-de-points.ipynb)
 - [Interpreting Sunburst Plots](activities/interpreting-sunburst-plots.ipynb)
 
 ## Data Skills
