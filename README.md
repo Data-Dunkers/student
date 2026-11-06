@@ -51,6 +51,7 @@ These activities teach reusable data techniques using Python libraries such as p
 - [Standard Deviation](activities/standard-deviation.ipynb)
 - [Data Cleaning](activities/data-cleaning.ipynb)
 - [Data Correlations](activities/data-correlations.ipynb)
+- [Corrélations des données (français)](activities/correlations-des-donnees.ipynb)
 - [Data Sorting and Merging](activities/data-sorting-and-merging.ipynb)
 - [Synthetic Data](activities/synthetic-data.ipynb)
 
